@@ -1,0 +1,10 @@
+.*
+build
+node_modules
+public
+out
+
+next-env.d.ts
+package.json
+README.md
+tsconfig.json
