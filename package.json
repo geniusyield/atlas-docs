@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "export": "next export",
     "build": "next build",
     "start": "next start",
     "lint": "tsc --project ./tsconfig.json --noEmit && eslint '**/**/*.{js,ts,tsx}' --quiet --fix",
