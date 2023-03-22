@@ -7,11 +7,11 @@ import { Logo } from "./components/Logo";
 const config: DocsThemeConfig = {
   logo: <Logo />,
   project: {
-    link: "https://github.com/mkrtchian/reading-notes",
+    link: "https://github.com/geniusyield/atlas-docs",
   },
-  docsRepositoryBase: "https://github.com/mkrtchian/reading-notes/blob/main",
+  docsRepositoryBase: "https://github.com/geniusyield/atlas-docs/blob/main",
   footer: {
-    text: "Made by Roman Mkrtchian",
+    text: "Made by Genius Yield",
   },
   head: Head,
   feedback: {

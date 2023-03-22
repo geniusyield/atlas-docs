@@ -5,7 +5,7 @@ const withNextra = require("nextra")({
 });
 
 const isProduction = process.env.NODE_ENV === "production";
-const assetPrefix = isProduction ? "/reading-notes" : "";
+const assetPrefix = isProduction ? "/docs" : "";
 
 const nextConfig = {
   images: {
