@@ -1,12 +1,24 @@
-const isProd = process.env.NODE_ENV === 'production'
+/** @type {import('next').NextConfig} */
+const withNextra = require("nextra")({
+  theme: "nextra-theme-docs",
+  themeConfig: "./theme.config.tsx",
+});
 
-const withNextra = require('nextra')({
-    theme: 'nextra-theme-docs',
-    themeConfig: './theme.config.jsx',
-    assetPrefix: isProd ? 'atlas-docs' : '',
-    images: {
-      unoptimized: true,
-    },
-  })
-   
-  module.exports = withNextra()
+const isProduction = process.env.NODE_ENV === "production";
+const assetPrefix = isProduction ? "/reading-notes" : "";
+
+const nextConfig = {
+  images: {
+    unoptimized: true,
+  },
+  reactStrictMode: true,
+  swcMinify: true,
+  trailingSlash: true,
+  assetPrefix,
+  basePath: assetPrefix,
+};
+
+module.exports = {
+  ...withNextra(),
+  ...nextConfig,
+};

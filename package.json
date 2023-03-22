@@ -1,39 +1,43 @@
 {
-  "name": "atlas-docs",
+  "name": "reading-notes",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "export": "next export",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --project ./tsconfig.json --noEmit && eslint '**/**/*.{js,ts,tsx}' --quiet --fix",
-    "type-check": "tsc --pretty --noEmit",
-    "prettier": "prettier --write \"**/*.tsx\""
+    "export": "next build && next export && touch out/.nojekyll",
+    "lint": "next lint --max-warnings=0",
+    "type-check": "tsc",
+    "deploy": "gh-pages -d out -t true",
+    "prepare": "husky install"
   },
   "dependencies": {
-    "@emotion/react": "^11.10.0",
-    "@emotion/styled": "^11.10.0",
-    "@mui/material": "^5.10.0",
-    "next": "^13.2.4",
-    "nextra": "^2.2.19",
-    "nextra-theme-docs": "^2.2.19",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "next": "13.2.4",
+    "nextra": "^2.2.12",
+    "nextra-theme-docs": "^2.2.12",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@types/node": "18.6.5",
-    "@types/react": "18.0.17",
-    "@types/react-dom": "18.0.6",
-    "eslint": "8.21.0",
-    "eslint-config-next": "12.2.4",
+    "@types/node": "18.15.3",
+    "@types/react": "18.0.28",
+    "@types/react-dom": "18.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.55.0",
+    "@typescript-eslint/parser": "^5.54.1",
+    "eslint": "8.36.0",
+    "eslint-config-next": "13.2.4",
+    "eslint-config-prettier": "^8.7.0",
+    "gh-pages": "^5.0.0",
     "husky": "^8.0.3",
-    "prettier": "^2.8.0",
-    "typescript": "4.7.4"
+    "lint-staged": "^13.2.0",
+    "prettier": "1.12.1",
+    "typescript": "4.9.5"
   },
-  "description": "Documentation and landing page for Atlas PAB",
-  "main": "index.js",
-  "repository": "https://github.com/geniusyield/atlas-docs",
-  "author": "Varderes Barsegyan <varderes@geniusyield.co>",
-  "license": "apache-2.0"
+  "lint-staged": {
+    "src/**/*.{ts,json,md}": [
+      "prettier --write",
+      "eslint --fix --max-warnings=0"
+    ]
+  }
 }
