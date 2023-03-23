@@ -1,0 +1,396 @@
+import { Tab, Tabs } from 'nextra-theme-docs'
+import { Callout } from 'nextra-theme-docs'
+import { exampleProjectURL, atlasRepoURL } from 'config/constants'
+import { brandButtonStyle } from 'theme/simple'
+import MyLink from 'components/my-link'
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverHeader,
+  PopoverBody,
+  PopoverArrow,
+  PopoverCloseButton,
+  Code,
+  Button,
+} from '@chakra-ui/react'
+
+# Operations over Contract
+
+Having understood the contract. Now is the time we actually start using our framework to build the transactions for it.
+
+The main principle to understand here is that - we only need to give the essentials, i.e. we only specify what we _want_ and it is the job of the framework to do the rest.
+
+For instance, we may tell that we want to consume this input belonging to the script's address and generate some output. Given that, it becomes framework's job to do the rest, say:
+
+* Select available UTxO's in user's wallet and generate suitable change output to balance the transaction considering fees.
+* Make sure all generated UTxO's satisfy minimum ada requirement.
+* Handle collateral.
+* etc, etc.
+
+Thus, we only specify at high-level what we want. This would become clear as we actually start writing operations for our contract.
+
+Entire code for these operations is available {MyLink(`${exampleProjectURL}/server-lib/BetRef/Api/Operations.hs`, true, "here")}.
+
+## Operation _1_: Generating address for our Smart Contract
+
+### Generating Validator for our Smart Contract
+
+Following the usual drill, we generate the Validator given contract parameters (following is written in file {MyLink(`${exampleProjectURL}/onchain/BetRef/OnChain/BetRef/Compiled.hs`, true, "Compiled.hs", true)}:
+
+```haskell filename="Compiled.hs"
+-- | Generates validator given params.
+betRefValidator :: BetRefParams -> Validator
+betRefValidator betRefParams = mkValidatorScript $
+    $$(PlutusTx.compile [|| mkBetRefValidator||]) `PlutusTx.applyCode` PlutusTx.liftCode betRefParams
+```
+
+What we have obtained is of {MyLink("https://playground.plutus.iohkdev.io/doc/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Scripts.html#t:Validator", true, "Validator", true)} type defined in `plutus-ledger-api`, which is nothing but a wrapper around `Script` type defined in same.
+
+Likewise, we have our own types, `GYValidator` (similarly `GYMintingPolicy` for minting policy scripts) & `GYScript` (defined in {MyLink(`${atlasRepoURL}/src/GeniusYield/Types/Script.hs`, true, "Script.hs", true)}) to represent these in our framework.
+
+The file mentioned {MyLink(`${atlasRepoURL}/src/GeniusYield/Types/Script.hs`, true, "Script.hs", true)} contains a lot of helper utilities such as `validatorFromPlutus` which takes in Plutus's `Validator` type to give out `GYValidator`. Though there has been slight abuse in mentioning type here as what is actually given out is `GYValidator v` where type variable `v` is of _kind_ `PlutusVersion` which is defined in file {MyLink(`${atlasRepoURL}/src/GeniusYield/Types/PlutusVersion.hs`, true, "PlutusVersion.hs", true)} which you can understand as being here to denote plutus version for our validator script[^1].
+
+If we look at the type signature of `validatorFromPlutus`, we see: `validatorFromPlutus :: forall v. SingPlutusVersionI v => Plutus.Validator -> GYValidator v` where for the time being we can ignore the description of the typeclass `SingPlutusVersionI`[^1] besides noting the fact that only types (currently `'PlutusV1` & `'PlutusV2`) of kind `PlutusVersion` have an instance for it. So here, our function `validatorFromPlutus` works for all type variable `v` which have an instance of `SingPlutusVersionI` but there is no way to learn what this `v` is based solely on the input `Plutus.Validator` and therefore, caller must specify it, either by providing type signature (of callee or caller due to type inference) or by using {MyLink("https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/type_applications.html", true, "visible type application")}. Our first operation does make use of it but before looking at it, we need to understand about `GYTxQueryMonad`.
+
+### Interlude - `GYTxQueryMonad`
+
+When we want to obtain the address of the script from its hash, we besides the hash, also need to know the network we are currently operating at. Is it some testnet or mainnet?
+
+Similarly, transaction building involves querying the ledger for various information like say querying UTxO's present at one's address, similarly it might need help of some chain indexer to query datum in case output contains only the datum's hash.
+
+All of this is captured by typeclass `GYTxQueryMonad` defined {MyLink(`${atlasRepoURL}/src/GeniusYield/TxBuilder/Class.hs`, true, "here")} and also shown below (kindly see all these functions defined for this typeclass).
+
+```haskell
+-- | Class of monads for querying chain data.
+class MonadError GYTxMonadException m => GYTxQueryMonad m where
+    {-# MINIMAL networkId, lookupDatum, (utxoAtTxOutRef | utxosAtTxOutRefs), (utxosAtAddress | utxosAtAddresses), slotConfig, currentSlot, logMsg #-}
+
+    -- | Get the network id
+    networkId :: m GYNetworkId
+
+    -- | Lookup datum by its hash.
+    lookupDatum :: GYDatumHash -> m (Maybe GYDatum)
+
+    -- | Lookup 'GYUTxO' at 'GYTxOutRef'.
+    --
+    utxoAtTxOutRef :: GYTxOutRef -> m (Maybe GYUTxO)
+    utxoAtTxOutRef ref = do
+        utxos <- utxosAtTxOutRefs [ref]
+        return $ case utxosToList utxos of
+            []       -> Nothing
+            utxo : _ -> Just utxo
+
+    -- | Lookup 'GYUTxOs' at multiple 'GYTxOutRef's at once
+    utxosAtTxOutRefs :: [GYTxOutRef] -> m GYUTxOs
+    utxosAtTxOutRefs orefs = utxosFromList <$> wither utxoAtTxOutRef orefs
+
+    -- | Lookup 'GYUTxOs' at 'GYAddress'.
+    utxosAtAddress :: GYAddress -> m GYUTxOs
+    utxosAtAddress = utxosAtAddresses . return
+
+    -- | Lookup 'GYUTxOs' at zero or more 'GYAddress'.
+    utxosAtAddresses :: [GYAddress] -> m GYUTxOs
+    utxosAtAddresses = foldM f mempty
+      where
+        f :: GYUTxOs -> GYAddress -> m GYUTxOs
+        f utxos addr = (<> utxos) <$> utxosAtAddress addr
+
+    -- | Lookup the `[GYTxOutRef]`s at a `GYAddress`
+    utxoRefsAtAddress :: GYAddress -> m [GYTxOutRef]
+    utxoRefsAtAddress = fmap (Map.keys . mapUTxOs id) . utxosAtAddress
+
+    {- | Obtain the slot config for the network.
+
+    Implementations using era history to create slot config may raise 'GYEraSummariesToSlotConfigError'.
+    -}
+    slotConfig :: m GYSlotConfig
+
+    -- | Lookup the current 'GYSlot'.
+    currentSlot :: m GYSlot
+
+    -- | Log a message with specified namespace and severity.
+    logMsg :: HasCallStack => GYLogNamespace -> GYLogSeverity -> String -> m ()
+```
+
+So, if we are working inside a monad which happens to also provide an instance for it, we would happily be able to query such an information.
+
+### Generating address
+
+In this operation, we only need to obtain network details with the help of this monad. Here is the code to obtain address (notice that we have provided multiple versions of the same code here):
+
+<Callout type="info">
+  Type of `scriptAddress` used below (& defined in {MyLink(`${atlasRepoURL}/src/GeniusYield/TxBuilder/Class.hs`, true, "Class.hs", true)}) is `scriptAddress :: forall (m :: * -> *) (v :: PlutusVersion). GYTxQueryMonad m => GYValidator v -> m GYAddress`. Thus with respect to type application, the first parameter is for monad and second one is `PlutusVersion` kinded.
+
+  Internally this function queries for network details.
+</Callout>
+
+<Tabs items={['A', 'B', 'C']}>
+  <Tab>
+    ```haskell
+    -- A. Type is given by `scriptAddress`.
+
+    -- | Validator in question, obtained after giving required parameters.
+    betRefValidator' ::  SingPlutusVersionI v => BetRefParams -> GYValidator v
+    betRefValidator' brp = validatorFromPlutus $ betRefValidator brp
+
+    -- | Address of the validator, given params.
+    betRefAddress :: (HasCallStack, GYTxQueryMonad m) => BetRefParams -> m GYAddress
+    betRefAddress brp = scriptAddress @_ @'PlutusV2 $ betRefValidator' brp
+    ```
+  </Tab>
+  <Tab>
+    ```haskell
+    -- B. Type is given by `validatorFromPlutus` using type application.
+
+    -- | Validator in question, obtained after giving required parameters.
+    betRefValidator' brp = validatorFromPlutus @'PlutusV2 $ betRefValidator brp
+
+    -- | Address of the validator, given params.
+    betRefAddress :: (HasCallStack, GYTxQueryMonad m) => BetRefParams -> m GYAddress
+    betRefAddress brp = scriptAddress $ betRefValidator' brp
+    ```
+  </Tab>
+  <Tab>
+    ```haskell
+    -- C. Type is specified using signature.
+
+    -- | Validator in question, obtained after giving required parameters.
+    betRefValidator' :: BetRefParams -> GYValidator 'PlutusV2
+    betRefValidator' brp = validatorFromPlutus $ betRefValidator brp
+
+    -- | Address of the validator, given params.
+    betRefAddress :: (HasCallStack, GYTxQueryMonad m) => BetRefParams -> m GYAddress
+    betRefAddress brp = scriptAddress $ betRefValidator' brp
+    ```
+  </Tab>
+</Tabs>
+
+Well what is this monad `m` being used here? Well any! As long as it has an instance for `GYTxQueryMonad`. When we will start writing tests, then we'll use all of these operations and most likely how to use them would become clear then.
+
+## Operation _2_: Adding Input to refer later (Reference Input)
+
+
+### Interlude - `GYTxSkeleton`
+
+As mentioned before, we just mention at high level what we want in a transaction. This is captured by `GYTxSkeleton` defined {MyLink(`${atlasRepoURL}/src/GeniusYield/TxBuilder/Class.hs`, true, "here")} and its description is mentioned below.
+
+| Fields           | Represented by      | Additional details                                                                                                                                                                                                                                                                                                                                                            |
+|------------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Inputs           | `gytxIns`           | It is a list of inputs where for each input, we have its UTxO reference (the "TxIn" as the {MyLink("https://github.com/input-output-hk/cardano-ledger/releases/latest/download/byron-ledger.pdf", true, "cardano ledger specification")} calls it) and a witness. In case this UTxO doesn't belong to a script, we just need spending key witness otherwise we need the associated script, its datum and input redeemer where the associated script could be provided as part of this transaction body or could be obtained from reference input. See {MyLink(`${atlasRepoURL}/src/GeniusYield/Types/TxIn.hs`, true, "TxIn.hs", true)}. |
+| Outputs          | `gytxOuts`          | List of outputs produced by this transaction where for each output we can mention whether the datum is to be inlined or not and whether this output stores any script. See {MyLink(`${atlasRepoURL}/src/GeniusYield/Types/TxOut.hs`, true, "TxOut.hs", true)}.                                                                                                                                                                                  |
+| Reference Inputs | `gytxRefIns`        | Set of reference to UTxOs corresponding to reference inputs. Defined in same file, viz. {MyLink(`${atlasRepoURL}/src/GeniusYield/TxBuilder/Class.hs`, true, "Class.hs", true)}.                                                                                                                                                                                                                                                                                                                               |
+| Mints            | `gytxMint`          | Map of minting policy to tuple of redeemer and another map for token name to mint amount for that token.                                                                                                                                                                                                                                                                      |
+| Signatories      | `gytxSigs`          | Set of Public Key Hash of Signatories.                                                                                                                                                                                                                                                                                                                                        |
+| Valid after      | `gytxInvalidBefore` | Just the corresponding node slot.                                                                                                                                                                                                                                                                                                                                                           |
+| Valid before     | `gytxInvalidAfter`  | Same as above.                                                                                                                                                                                                                                                                                                                                                                |
+
+Corresponding snippet of haskell code:
+
+```haskell
+data GYTxSkeleton (v :: PlutusVersion) = GYTxSkeleton
+    { gytxIns           :: ![GYTxIn v]
+    , gytxOuts          :: ![GYTxOut v]
+    , gytxRefIns        :: !(GYTxSkeletonRefIns v)
+    , gytxMint          :: !(Map (Some GYMintingPolicy) (Map GYTokenName Integer, GYRedeemer))
+    , gytxSigs          :: !(Set GYPubKeyHash)
+    , gytxInvalidBefore :: !(Maybe GYSlot)
+    , gytxInvalidAfter  :: !(Maybe GYSlot)
+    } deriving Show
+```
+
+When constructing the transaction, we just need to specify what we want in this skeleton.
+
+This skeleton naturally has a monoid instance where two skeletons are combined by running `mappend` over each of their fields. We have utility functions defined in the same file {MyLink(`${atlasRepoURL}/src/GeniusYield/TxBuilder/Class.hs`, true, "Class.hs", true)} like (note that there are other helpful functions defined in the same file and it would in general be useful to go over them):
+
+```haskell
+mustHaveOutput :: GYTxOut v -> GYTxSkeleton v
+mustHaveOutput o = emptyGYTxSkeleton {gytxOuts = [o]}
+
+mustHaveInput :: GYTxIn v -> GYTxSkeleton v
+mustHaveInput i = emptyGYTxSkeleton {gytxIns = [i]}
+
+mustHaveRefInput :: VersionIsGreaterOrEqual v PlutusV2 => GYTxOutRef -> GYTxSkeleton v
+mustHaveRefInput i = emptyGYTxSkeleton { gytxRefIns = GYTxSkeletonRefIns (Set.singleton i) }
+
+mustMint :: GYMintingPolicy u -> GYRedeemer -> GYTokenName -> Integer -> GYTxSkeleton v
+mustMint p r tn n = emptyGYTxSkeleton {gytxMint = Map.singleton (Some p) (Map.singleton tn n, r)}
+
+mustBeSignedBy :: GYPubKeyHash -> GYTxSkeleton v
+mustBeSignedBy pkh = emptyGYTxSkeleton {gytxSigs = Set.singleton pkh}
+
+isInvalidBefore :: GYSlot -> GYTxSkeleton v
+isInvalidBefore s = emptyGYTxSkeleton {gytxInvalidBefore = Just s}
+
+isInvalidAfter :: GYSlot -> GYTxSkeleton v
+isInvalidAfter s = emptyGYTxSkeleton {gytxInvalidAfter = Just s}
+```
+
+Thus we can specify that our transaction must have this output (using `mustHaveOutput`) and that output and must have this input (using `mustHaveInput`) and so on... and combine them all into a single skeleton using `mappend`.
+
+### Skeleton for adding reference input
+
+Here we want to create an output at a given address (Oracle's address) with the given datum. This UTxO is to be later used as a reference input by script where the script would refer to its datum. Here we have decided to keep this datum inline as currently framework is not supporting reading datum for a reference input whose output contains only datum hash[^2].
+
+```haskell
+-- | Add UTxO to be used as reference input at a given address with given datum.
+addRefInput :: GYAddress -> OracleAnswerDatum -> GYTxSkeleton 'PlutusV2
+addRefInput addr dat =
+  mustHaveOutput $ GYTxOut addr mempty (Just (datumFromPlutusData dat, GYTxOutUseInlineDatum)) Nothing
+  -- Note that the value can be empty as tx building logic would add the needed minimum UTxO ada.
+```
+
+Note that we have mentioned the value as empty for this UTxO and this is one of the beauties of our framework that it will itself manage adding lovelaces to satisfy minimum ada requirement.
+
+### Q: Can you create a skeleton for adding reference script?
+
+<Popover>
+  <PopoverTrigger>
+    <Button mt="20px" ml="20px" {...brandButtonStyle}>Toggle Answer</Button>
+  </PopoverTrigger>
+  <PopoverContent>
+    <PopoverArrow />
+    <PopoverCloseButton />
+    <PopoverHeader>Hope you got it right!</PopoverHeader>
+    <PopoverBody>
+      Given the output address <Code borderRadius='md'>addr :: GYAddress</Code> and the Plutus V2 validator <Code borderRadius='md'>script :: GYValidator 'PlutusV2</Code>, we can write <Code borderRadius='md'>mustHaveOutput $ GYTxOut addr mempty (Just (datumFromPlutusData (), GYTxOutDontUseInlineDatum)) (Just $ validatorToScript script)</Code>
+    </PopoverBody>
+  </PopoverContent>
+</Popover>
+
+## Operation _3_: Placing a bet
+
+### Placing the first bet
+
+In case this is a first bet (a program handling the bets can decide whether the bet being placed by the user is first or not by querying the UTxOs at the script address), then we just need to produce an output at the script address with the bet value and our guess.
+
+```haskell
+-- | Operation to place bet.
+placeBet :: (HasCallStack, GYTxMonad m)
+              => GYTxOutRef         -- ^ Reference Script.
+              -> BetRefParams       -- ^ Validator Params.
+              -> OracleAnswerDatum  -- ^ Guess.
+              -> GYValue            -- ^ Bet amount to place.
+              -> GYAddress          -- ^ Own address.
+              -> Maybe GYTxOutRef   -- ^ Reference to previous bets UTxO (if any).
+              -> m (GYTxSkeleton PlutusV2)
+placeBet refScript brp guess bet ownAddr mPreviousBetsUtxoRef = do
+  pkh <- addressToPubKeyHash' ownAddr
+  betAddr <- betRefAddress brp
+  case mPreviousBetsUtxoRef of
+    -- This is the first bet.
+    Nothing -> do
+      return $ mustHaveOutput $ GYTxOut
+        { gyTxOutAddress = betAddr
+        , gyTxOutValue = bet
+        , gyTxOutDatum = Just (datumFromPlutusData $ BetRefDatum [(pubKeyHashToPlutus pkh, guess)] (valueToPlutus bet), GYTxOutDontUseInlineDatum)
+        , gyTxOutRefS    = Nothing
+        }
+```
+
+At this point, it should be clear what is happening in the above code block. This function is somewhat overloaded and is handling both the cases whether the bet is first or not and it determines this using the presence of reference to a UTxO (representing previous bets) at validator script. In case there isn't one, i.e., `Nothing` for our `Maybe` value, we are placing the first bet. Notice that we mention that our datum shouldn't be inlined to output using `GYTxOutDontUseInlineDatum`.
+
+### Placing subsequent bets
+
+Here we would be exercising script's logic for the first time. We would be consuming the UTxO present at script address. We have defined a function, viz. `input` which would take in the following parameters:
+
+* `BetRefParams`: to generate the validator script or else we can read the script from the UTxO pertaining to reference script.
+* Reference to reference script UTxO.
+* Reference of script input to consume.
+* The datum present at this input. Recall that our datum was not inlined for this particular output, we therefore would need lookup the datum using `lookupDatum` to pass the actual datum to this function.
+* Redeemer action.
+
+Thus, we have its definition as:
+
+```haskell
+-- | Utility function to consume script UTxO.
+input :: BetRefParams -> GYTxOutRef -> GYTxOutRef -> BetRefDatum -> BetRefAction -> GYTxSkeleton 'PlutusV2
+input brp refScript inputRef dat red =
+  mustHaveInput GYTxIn
+    { gyTxInTxOutRef = inputRef
+    , gyTxInWitness  = GYTxInWitnessScript
+        (GYInReference refScript $ validatorToScript $ betRefValidator' brp)
+        (datumFromPlutusData dat)
+        (redeemerFromPlutusData red)
+    }
+```
+
+<Callout type="info">
+  In case we didn't want to use reference script, we would write `gyTxInWitness` as: 
+  ```haskell
+  gyTxInWitness  = GYTxInWitnessScript
+          (GYInScript (validatorToScript $ betRefValidator' brp))
+          (datumFromPlutusData dat)
+          (redeemerFromPlutusData red)
+  ```
+</Callout>
+
+Following is the complete code for handling this case. Few comments to facilitate its understanding:
+
+* We first query the UTxO corresponding to previous bets at script address and we then query for its datum using `utxoDatum'` which tries its best to retrieve the datum and raises an exception in case it fails. This is its signature: `utxoDatum' :: (GYTxQueryMonad m, Plutus.FromData a) => GYUTxO -> m (GYAddress, GYValue, a)`.
+  * _Note_: `utxoAtTxOutRef'` (defined again in {MyLink(`${atlasRepoURL}/src/GeniusYield/TxBuilder/Class.hs`, true, "Class.hs", true)}) is a wrapper around `utxoAtTxOutRef` which raises an exception in case the result was `Nothing`.
+
+* We then see the use of `gyLogDebug'` which as you would expect is for logging purposes. The first argument that it takes correspond to namespace as used by {MyLink("https://hackage.haskell.org/package/katip-0.8.7.2/docs/Katip-Core.html#t:Namespace", true, "Katip", true)}. This is where integration of off-chain and on-chain code really begins to shine ✨, having the `Show` instance defined for some of our on-chain types allows us to log them.
+
+* `timeFromPlutus` is as you'll expect - gives us the framework's representation of time from that of plutus. And `enclosingSlotFromTime'` uses ledger's information to determine the corresponding slot for the given time. We need this as cardano's node work in slots. We mention that our transaction is to be invalid after this slot using `isInvalidAfter`.
+
+
+* We mention that our transaction must have our public key hash as signatories when plutus smart contract asks for it using `mustBeSignedBy`
+
+* Lastly, this transaction must generate an output to the script's address with the updated datum and added value.
+  * `valueToPlutus` gives the corresponding value type used by plutus from what we have in our framework (viz., `GYValue`).
+
+All these skeletons are combined together using `mappend` defined for `GYTxSkeleton`.
+
+```haskell
+    -- Need to append to previous.
+    Just previousBetsUtxoRef -> do
+      previousUtxo <- utxoAtTxOutRef' previousBetsUtxoRef
+      (_addr, previousValue, dat@(BetRefDatum previousGuesses _previousBet)) <- utxoDatum' previousUtxo
+      gyLogDebug' "" $ printf "previous guesses %s" (show previousGuesses)
+      betUntilSlot <- enclosingSlotFromTime' (timeFromPlutus $ brpBetUntil brp)
+      gyLogDebug' "" $ printf "bet until slot %s" (show betUntilSlot)
+      return $
+           input brp refScript previousBetsUtxoRef dat (Bet guess)
+        <> mustHaveOutput GYTxOut
+              { gyTxOutAddress = betAddr
+              , gyTxOutValue = bet <> previousValue
+              , gyTxOutDatum = Just (datumFromPlutusData $ BetRefDatum ((pubKeyHashToPlutus pkh, guess) : previousGuesses) (valueToPlutus bet), GYTxOutDontUseInlineDatum)
+              , gyTxOutRefS    = Nothing
+              }
+        <> isInvalidAfter betUntilSlot
+        <> mustBeSignedBy pkh
+```
+
+## Operation _4_: Taking the bet pot
+
+At this point, reading following code snippet should make sense as it is similar to what we have done before. Here note that we are using `mustHaveRefInput` to tell that the transaction must have the following UTxO reference as a reference input.
+
+<Callout>
+  Observe that we don't need to specify that the value we successfully consume from the script's UTxO must reach us because transaction balancer would add the change output to us.
+</Callout>
+
+```haskell
+-- | Operation to take UTxO corresponding to previous bets.
+takeBets :: (HasCallStack, GYTxMonad m)
+              => GYTxOutRef    -- ^ Reference Script.
+              -> BetRefParams  -- ^ Validator params.
+              -> GYTxOutRef    -- ^ Script UTxO to consume.
+              -> GYAddress     -- ^ Own address.
+              -> GYTxOutRef    -- ^ Oracle reference input.
+              -> m (GYTxSkeleton PlutusV2)
+takeBets refScript brp previousBetsUtxoRef ownAddr oracleRefInput = do
+  pkh <- addressToPubKeyHash' ownAddr
+  previousUtxo <- utxoAtTxOutRef' previousBetsUtxoRef
+  (_addr, _previousValue, dat) <- utxoDatum' previousUtxo
+  betRevealSlot <- enclosingSlotFromTime' (timeFromPlutus $ brpBetReveal brp)
+  return $
+       input brp refScript previousBetsUtxoRef dat Take
+    <> isInvalidBefore betRevealSlot
+    <> mustHaveRefInput oracleRefInput
+    <> mustBeSignedBy pkh
+```
+
+[^1]: This is related to singletons and one can read about it from the "Dependent Types" chapter (the last one) in {MyLink("https://thinkingwithtypes.com/", true, "Thinking with Types")} book.
+
+[^2]: This however is not true for normal inputs where you can specify the datum as we'll see in other operations.

@@ -1,3 +1,5 @@
+// FIXME: To review this component.
+
 import { assetPrefix, description } from "../config/constants";
 
 export function Head() {

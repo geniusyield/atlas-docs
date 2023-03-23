@@ -1,15 +1,19 @@
 import React from "react";
 import { DocsThemeConfig } from "nextra-theme-docs";
-import { Head } from "./components/Head";
-import { useNextSeoProps } from "./config/useNextSeoProps";
-import { Logo } from "./components/Logo";
+import { Head } from "components/Head";
+import { useNextSeoProps } from "config/useNextSeoProps";
+import { atlasRepoURL, docsRepoURL } from 'config/constants'
+import { Logo } from "components/Logo";
 
 const config: DocsThemeConfig = {
   logo: <Logo />,
   project: {
-    link: "https://github.com/geniusyield/atlas-docs",
+    link: atlasRepoURL,
   },
-  docsRepositoryBase: "https://github.com/geniusyield/atlas-docs/blob/main",
+  chat: {
+    link: 'https://discord.gg/TNHf4fs626',
+  },
+  docsRepositoryBase: docsRepoURL,  // TODO: To suffix with `tree/main`?
   footer: {
     text: "Made by Genius Yield",
   },
@@ -17,6 +21,9 @@ const config: DocsThemeConfig = {
   feedback: {
     content: () => <>Question? Give me feedback →</>,
     labels: "feedback",
+  },
+  sidebar: {
+    toggleButton: true,
   },
   useNextSeoProps,
   i18n: [],
