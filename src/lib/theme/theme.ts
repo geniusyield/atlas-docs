@@ -5,13 +5,9 @@ import { typography } from "./typography";
 import { borderRadius } from "./borders";
 import { breakpoints } from "./breakpoints";
 import { lightPalette } from "./lightPalette";
-import { darkPalette } from "./darkPalette";
 
-export const getTheme = (mode: PaletteMode) => ({
-  palette: {
-    mode,
-    ...(mode === "light" ? lightPalette : darkPalette),
-  },
+export const getTheme = () => ({
+  palette: lightPalette,
   breakpoints,
   borderRadius,
   typography,
@@ -46,20 +42,18 @@ declare module "@mui/material/styles" {
 
   export interface TypographyVariantsOptions {}
 
-  interface AdditionalTextColorProps {
-    offBlack: any;
-    main08Transparency: any;
-    offWhite2: any;
-    offWhite3: any;
-    blueRadialGradient: any;
-    blueRadialGradient2: any;
-    whiteLinearGradient: any;
-    offWhiteLinearGradient: any;
-    offWhiteBlue: any;
-  }
-
   interface CustomPalette {
-    textColor: PaletteColor & AdditionalTextColorProps;
+    textColor: {
+      offBlack: any;
+      main08Transparency: any;
+      offWhite2: any;
+      offWhite3: any;
+      blueRadialGradient: any;
+      blueRadialGradient2: any;
+      whiteLinearGradient: any;
+      offWhiteLinearGradient: any;
+      offWhiteBlue: any;
+    };
     primary: {
       main: any;
       grey02Transparency: any;

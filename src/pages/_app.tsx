@@ -8,16 +8,13 @@ import { getTheme } from "../lib/theme/theme";
 import { mutateFontSizeResponsiveness } from "../lib/theme/responsiveTypography";
 
 function App({ Component, pageProps }: AppProps) {
-  const [activeMode, setActiveMode] = useState("light");
-
-  // let theme = createTheme(getTheme(activeMode as "light" | "dark"));
+ const theme = createTheme(getTheme());
   // theme = mutateFontSizeResponsiveness(theme);
 
   return (
-    // <ThemeProvider theme={theme}>
-    //   <Component {...pageProps} setActiveMode={setActiveMode} />
-    // </ThemeProvider>
-    <>{"placeholder"}</>
+    <ThemeProvider theme={theme}>
+      <Component {...pageProps} />
+    </ThemeProvider>
   );
 }
 export default App;
