@@ -1,5 +1,5 @@
-export const atlasRepoURL: string = 'https://github.com/geniusyield/TODO'
-export const exampleProjectURL: string = `${atlasRepoURL}/examples/bet-ref`
+export const atlasRepoURL: string = 'https://github.com/geniusyield/atlas'
+export const exampleProjectURL: string = `https://github.com/geniusyield/atlas-examples/tree/main/bet-ref`
 export const docsRepoURL: string = 'https://github.com/geniusyield/atlas-docs'
 
 // TODO: Review the following constants (and their usage).
