@@ -1,31 +1,31 @@
 import { Callout } from 'nextra-theme-docs'
 
-# Our Smart Contract
+# Betting Smart Contract
 
-Let's start by writing up our Smart Contract which we'll use later to build transactions for. Though this smart contract is somewhat silly but is powerful enough to illustrate most of our framework's features.
+Let's start by writing a smart contract that we will convey the framework's most important features.
 
 <Callout type="warning">
 
-  This contract is only for illustrative purposes. It is not expected to be used in production and contains security risks[^1].
+  This contract is for illustrative purposes only. We do not recommend using it in a production environment[^1].
 
 </Callout>
 
 ## Contract Description
 
-Setting here is that we have a sport match happening and a group of friends want to bet on the number of goals scored by their favorite team in it.
+A group of friends want to bet on a sports game and the scores of each respective team. The winner is determined by the participant who guesses the closest score. In the case of a tie, the winner is the one who placed the earliest bet. 
 
-Winner is the one whose guess is closest (and in case of tie - the one who takes it fastest!).
+The smart contract code is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/onchain/BetRef/OnChain/BetRef.hs)
 
-Entire code for the contract is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/onchain/BetRef/OnChain/BetRef.hs). This contract is inspired by the one [available](https://github.com/mlabs-haskell/plutus-simple-model/blob/main/psm/test/Suites/Plutus/Model/Script/V2/Onchain/Oracle.hs) at MLabs repository.
+This example was inspired by [MLabs](https://github.com/mlabs-haskell/plutus-simple-model/blob/main/psm/test/Suites/Plutus/Model/Script/V2/Onchain/Oracle.hs).
 
-### Contract's Parameters
+### Contract Parameters
 
-* **`brpOraclePkh :: PubKeyHash`**: Idea here is that, our contract will use a reference input, whose datum will give us the actual result (the number of goals). This reference input UTxO must belong to Oracle and we check it using Oracle's payment public key hash.
-* **`brpBetUntil :: POSIXTime`**: Time (in posix) until which bets can be placed.
-* **`brpBetReveal :: POSIXTime`**: Time (again in posix) at which Oracle will reveal the correct match result.
-* **`brpBetStep   :: Value`**: Each newly placed bet must be more than the previous bet by this amount.
+* **`brpOraclePkh :: PubKeyHash`**: We'll be using a reference input, and its datum will give us the actual result (the number of goals). Since the reference input UTxO must belong to Oracle, we will read from it using the Oracle's payment public key hash.
+* **`brpBetUntil :: POSIXTime`**: Time that bets can be placed.
+* **`brpBetReveal :: POSIXTime`**: Time that the Oracle will reveal the match results.
+* **`brpBetStep :: Value`**: Minimum number that bets must increase by.
 
-Thus, our parameter for the contract is given by:
+Thus, the parameters of our contract are given by:
 
 ```haskell filename="BetRef.hs"
 -- | Our contract is parameterized with this.
@@ -38,9 +38,9 @@ data BetRefParams = BetRefParams
 PlutusTx.makeLift ''BetRefParams
 ```
  
-### Reference Input's Datum
+### Reference Input Datum
 
-Answer given by the Oracle is the number of goals scored by the team in question, this is represented in contract as:
+The Oracle tells us the number of goals scored by the specified team:
 
 ```haskell filename="BetRef.hs"
 -- | Goals made my the concerned team.
@@ -51,11 +51,9 @@ newtype OracleAnswerDatum = OracleAnswerDatum TeamGoals deriving newtype (Eq, Sh
 PlutusTx.unstableMakeIsData ''OracleAnswerDatum
 ```
 
-### Contract's Datum
+### Contract Datum
 
-Contract's datum consists of two fields:
-
-1. List containing each person's guess with their payment public key hash. Key hash is used to tie guess with the guesser. Every time a new guess is made, we prepend it to this list.
+1. `List` containing each person's guess along with their payment public key hash. Key hash is used to tie guess with the guesser. Every time a new guess is made, we prepend it to this list.
    This key hash is obtained from transaction signatories - we insist on key hash being present in signatories as otherwise anyone may override bet of someone else.
 
 2. Amount denoting the previously placed bet. Note that the total value in the concerned UTxO is a culmination of **all** the previously placed bets and thus isn't in general equal to last placed bet. We use this to see that the newly placed bet is more than the previous one by `brpBetStep` amount.
@@ -69,7 +67,7 @@ data BetRefDatum = BetRefDatum
 PlutusTx.unstableMakeIsData ''BetRefDatum
 ```
 
-### Contract's Redeemer
+### Contract Redeemer
 
 There are two actions available to user:
 
@@ -85,7 +83,7 @@ data BetRefAction = Bet !OracleAnswerDatum  -- ^ User makes a guess.
 PlutusTx.unstableMakeIsData ''BetRefAction
 ```
 
-## Contract's Logic
+## Contract Logic
 
 ### Placing a bet
 
