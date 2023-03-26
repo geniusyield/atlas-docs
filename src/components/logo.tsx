@@ -1,13 +1,11 @@
-import Image from "next/image"
-import atlasLogoLight from 'public/atlas-logo-light-mode.svg'
-import atlasLogoDark from 'public/atlas-logo-dark-mode.svg'
-import { useTheme } from "next-themes"
+import Image from "next/image";
+import atlasLogoLight from "public/atlas-logo-light-mode.svg";
+import atlasLogoDark from "public/atlas-logo-dark-mode.svg";
+import { useTheme } from "next-themes";
 
 const Logo = () => {
-  const { resolvedTheme } = useTheme()
-  return (
-    <Image src={resolvedTheme === "light" ? atlasLogoLight : atlasLogoDark} alt="Atlas Logo" height="42" />
-  )
-}
+  const { resolvedTheme } = useTheme();
+  return <Image src={resolvedTheme === "light" ? atlasLogoLight : atlasLogoDark} alt="Atlas Logo" height="42" />;
+};
 
-export default Logo
+export default Logo;
