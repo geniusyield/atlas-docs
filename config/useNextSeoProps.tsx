@@ -7,6 +7,7 @@ export function useNextSeoProps() {
   const result: NextSeoProps = {
     description,
   };
+  // FIXME: To review the following.
   if (route !== "/") {
     result.titleTemplate = "%s – Reading notes";
   } else {

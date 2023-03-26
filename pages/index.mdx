@@ -1,0 +1,21 @@
+import MyLink from 'components/my-link'
+
+# Introduction
+
+Atlas is an all-in-one solution for writing off-chain code for on-chain Plutus smart contracts. Atlas has been designed by {MyLink("https://www.geniusyield.co/?lng=en", true, "Genius Yield")}, in collaboration with {MyLink("https://mlabs.city/", true, "MLabs")}, {MyLink("https://well-typed.com/", true, "Well-Typed")} & {MyLink("https://www.joinplank.com/", true, "Plank")}.
+
+## Features
+
+* **First class Haskell**: Atlas is written in Haskell and brings the complete power of Haskell to one's fingertips. Atlas also avoids code duplication (between the on-chain & off-chain code) and makes programming for Plutus much easier.
+  * For solutions not written in Haskell, one would either need to manually deal with raw plutus data or write a duplicate type altogether. Here we can simply use the same types with their various instances & functions over them. Plus you don't need to enter the realms of languages like Javascript.
+  * Interoperability with rich Cardano Api & Plutus libraries for advanced functionalities as Atlas allows easy conversion between framework's types with those present in these libraries to use with their functions.
+* **Modular providers**: Building transactions on Cardano requires querying ledger information and for that, Atlas supports multiple providers such as {MyLink("https://www.gomaestro.org/", true, "Maestro")}, {MyLink("https://github.com/input-output-hk/cardano-db-sync", true, "Cardano DB Sync")}, Local Node, or a self-provided option.
+* **Easily build transactions**: Just mention what is required (we call it the _"Transaction Skeleton"_) and Atlas takes care of rest to create a valid transaction body from it.
+* **Unit tests**: Conveniently write realistic unit tests using the same transaction skeletons with our test suite which is built on top of {MyLink("https://github.com/mlabs-haskell/plutus-simple-model", true, "Plutus Simple Model")}[^1].
+* **Integration tests**: Write not realistic but real tests which run against a real node instead of a simulated environment[^2].
+* **Up to date**: Use the latest features provided by Vasil upgrade such as Reference Inputs & Inline Datums.
+
+In summary, Atlas covers all functionalities that are needed to work with Plutus smart contracts and enables one to write the complete server side code in Haskell. But why don't we see all this in action by working on a complete end-to-end example in our [Getting Started](./getting-started) guide.
+
+[^1]: See [Unit Tests](./getting-started/unit-tests) guide for more information.
+[^2]: See comparison between writing tests against a real node with that against a mock environment at [Integration Tests](./getting-started/integration-tests).
