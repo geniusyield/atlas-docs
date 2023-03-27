@@ -12,7 +12,9 @@ Let's start by writing a smart contract that we will convey the framework's most
 
 ## Contract Description
 
-A group of friends want to bet on a sports game and the scores of each respective team. The winner is determined by the participant who guesses the closest score. In the case of a tie, the winner is the one who placed the earliest bet. 
+Setting here is that we have a sport match happening and a group of friends want to bet on the number of goals scored by their favorite team in it.
+
+Winner is the one whose guess is closest (and in case of tie - the one who takes it fastest!).
 
 The smart contract code is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/onchain/BetRef/OnChain/BetRef.hs)
 
@@ -20,10 +22,10 @@ This example was inspired by [MLabs](https://github.com/mlabs-haskell/plutus-sim
 
 ### Contract Parameters
 
-* **`brpOraclePkh :: PubKeyHash`**: We'll be using a reference input, and its datum will give us the actual result (the number of goals). Since the reference input UTxO must belong to Oracle, we will read from it using the Oracle's payment public key hash.
-* **`brpBetUntil :: POSIXTime`**: Time that bets can be placed.
+* **`brpOraclePkh :: PubKeyHash`**: We'll be using a reference input, and its datum will give us the actual result (the number of goals). Since the reference input UTxO must belong to Oracle, we check it using Oracle's payment public key hash.
+* **`brpBetUntil :: POSIXTime`**: Time until which bets can be placed.
 * **`brpBetReveal :: POSIXTime`**: Time that the Oracle will reveal the match results.
-* **`brpBetStep :: Value`**: Minimum number that bets must increase by.
+* **`brpBetStep :: Value`**: Minimum value that bets must increase by.
 
 Thus, the parameters of our contract are given by:
 
@@ -40,7 +42,7 @@ PlutusTx.makeLift ''BetRefParams
  
 ### Reference Input Datum
 
-The Oracle tells us the number of goals scored by the specified team:
+The Oracle tells us the number of goals scored by the concerned team:
 
 ```haskell filename="BetRef.hs"
 -- | Goals made my the concerned team.
