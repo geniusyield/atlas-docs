@@ -4,19 +4,19 @@ import { Button, Grid, styled, Typography } from "@mui/material";
 
 const TitleSection: FC = () => {
   return (
-    <TitleSectionContainer container width="100%" flex="true" overflow="hidden" justifyContent="center">
+    <TitleSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
       <img
         className="atlasHoldingGalaxy"
         alt="atlasHoldingGalaxy"
         src={"/images/titleSection/AtlasHoldingGalaxy.png"}
       />
 
-      <TitleContainer container flex="true" marginTop="250px" flexDirection="column">
+      <TitleContainer container display="flex" marginTop="250px" flexDirection="column">
         <Typography className="title1" variant="title1" textAlign="center">
           Making dApps easy
         </Typography>
 
-        <Grid container flex="true" flexDirection="column" marginTop="20px">
+        <Grid container display="flex" flexDirection="column" marginTop="20px">
           <Subtitle className="title5" variant="title5" textAlign="center">
             An all-in-one open source solution to build on Cardano
           </Subtitle>
@@ -37,7 +37,7 @@ const TitleSection: FC = () => {
 
       <BrowserContainer
         container
-        flex="true"
+        display="flex"
         flexDirection="column"
         width="1220px"
         padding="0 60px"
@@ -51,15 +51,15 @@ const TitleSection: FC = () => {
 
         <img className="browserAtlasLogo" alt="browserAtlasLogo" src={"/images/titleSection/AtlasLogo.png"} />
 
-        <BrowserText container flex="true" marginTop="200px" flexDirection="row" justifyContent="flex-start">
+        <BrowserText container display="flex" marginTop="200px" flexDirection="row" justifyContent="flex-start">
           <img className="blueBrowserTabs" alt="blueBrowserTabs" src={"/images/titleSection/BlueBrowserTabs.png"} />
 
-          <Grid container flex="true" marginTop="40px" flexDirection="column">
+          <Grid container display="flex" marginTop="40px" flexDirection="column">
             <Typography className="title4" variant="title4" width="440px">
               Build transactions and execute smart contracts with ease
             </Typography>
           </Grid>
-          <Grid container flex="true" marginTop="30px" flexDirection="column">
+          <Grid container display="flex" marginTop="30px" flexDirection="column">
             <Typography className="text1" variant="text1" width="440px">
               Leverage Atlas intuitive API to abstract away the complexity around building transactions, balancing
               UTxOs, and interfacing with Plutus smart contracts.

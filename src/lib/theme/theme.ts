@@ -102,6 +102,7 @@ declare module "@mui/material/styles" {
       offWhite: string;
       black08Transparency: string;
       blueLinearGradient: string;
+      blueBlackLinearGradient: string;
       offBlack: string;
       linearGreyShadowBigScreens: string;
       linearGreyShadowMediumScreens: string;
