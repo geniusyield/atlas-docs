@@ -1,120 +1,151 @@
 export const typography = {
-  fontFamily: ["inter", "sansSerif"].join(","),
+  fontFamily: "Inter",
 
   allVariants: {
-    fontFamily: ["inter", "sansSerif"].join(","),
+    fontFamily: "Inter",
     color: "#ffffff",
   },
 
   // comments to be deleted after the styles are implemented
-  h1: {
+  title1: {
     // Making dApps easy
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "600",
     fontSize: "80px",
     lineHeight: "90px",
   },
 
-  h2: {
+  title2: {
     // About Atlas
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "600",
     fontSize: "60px",
     lineHeight: "44px",
   },
 
-  h3: {
+  title3: {
     // Contribute | Do you need help?
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "600",
     fontSize: "40px",
     lineHeight: "30px",
   },
 
-  h4: {
+  title4: {
     // First class Haskell | Build transactions and execute smart contracts with ease | Modular Data Providers | Always up to date | Always up to date | Integration tests | Developed by | Partners |
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "600",
     fontSize: "36px",
     lineHeight: "38px",
   },
 
-  h5: {
+  title5: {
     // An all-in-one open source solution to build on Cardano
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "400",
     fontSize: "28px",
     lineHeight: "42px",
   },
 
-  h6: {
+  title6: {
     // Maestro | Cardano DBSync | Local Node
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "600",
     fontSize: "24px",
     lineHeight: "34px",
   },
 
-  h7: {
+  title7: {
     // Atlas is an open source library ... | Under the direction of Dr. Lars Brünjes
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "400",
     fontSize: "24px",
     lineHeight: "38px",
   },
 
-  h8: {
+  title8: {
     // Get Started
+    fontFamily: "Inter-Bold",
+    color: "#ffffff",
     fontWeight: "800",
     fontSize: "16px",
     lineHeight: "22px",
   },
 
-  body1: {
+  text1: {
     // Bullets text | Atlas App
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "400",
     fontSize: "20px",
     lineHeight: "28px",
   },
 
-  body2: {
+  text2: {
     // 25
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "500",
     fontSize: "18px",
     lineHeight: "25px",
   },
 
-  body3: {
+  text3: {
     // Documentation | About | I have a question about | 2nd 161
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "400",
     fontSize: "17px",
     lineHeight: "21px",
   },
 
-  body4: {
+  text4: {
     // #Atlas
     fontFamily: "JetBrains Mono",
+    color: "#ffffff",
     fontWeight: "500",
     fontSize: "16px",
     lineHeight: "20px",
   },
 
-  body5: {
+  text5: {
     // Powered by
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "400",
     fontSize: "16px",
     lineHeight: "20px",
   },
 
-  body6: {
+  text6: {
     // Copy logo as SVG | Search documentation... | Atlas is Licensed under Apache 2.0
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "400",
     fontSize: "14px",
     lineHeight: "20px",
   },
 
-  body7: {
+  text7: {
     // #Atlas | #onchain | #problem | Share | Improve this question | Follow
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "400",
     fontSize: "13.4px",
     lineHeight: "24px",
   },
 
-  body8: {
+  text8: {
     // ⌘ K | 161
+    fontFamily: "Inter",
+    color: "#ffffff",
     fontWeight: "400",
     fontSize: "12px",
     lineHeight: "20px",
