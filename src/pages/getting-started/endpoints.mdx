@@ -204,6 +204,10 @@ Entire code for it is available [here](https://github.com/geniusyield/atlas-exam
 
 At this point, it should be easy to follow the code here. We first define the input type for our endpoint, we also derive its `FromJSON` instance so that we can parse it from JSON that our front-end will send for it and we also derive its `Swagger.ToSchema` instance so as to document our endpoint. Then our endpoint calls the relevant operation which we defined before to get transactoin skeleton, using which we obtain the transaction body with the help of functions such as `runTxI` and return the result (wrapped in our `UnsignedTxResponse` type).
 
+<Callout>
+  You can see that all of our endpoints here ask for a list of used addresses, this makes them compatible with wallets that are not in single address mode (by default) such as [Eternl](https://eternl.io/).
+</Callout>
+
 ```haskell
 -- | Input wrapper around corresponding Plutus type.
 data BetRefParams = BetRefParams
