@@ -2,7 +2,7 @@
 
 # Atlas Docs
 
-This repository houses code for Atlas guide and website, head over to https://atlas-apps.io to see it.
+This repository houses code for Atlas guide and website, head over to https://atlas-app.io to see it.
 
 ## Local Development
 
