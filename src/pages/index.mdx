@@ -1,0 +1,20 @@
+# Introduction
+
+Atlas is an all-in-one solution for writing off-chain code for on-chain Plutus smart contracts. Atlas has been designed by [Genius Yield](https://www.geniusyield.co/?lng=en), in collaboration with [MLabs](https://mlabs.city/), [Well-Typed](https://well-typed.com/) & [Plank](https://www.joinplank.com/).
+
+## Features
+
+* **Easily build transactions**: Leverage Atlas intuitive API to abstract away the complexity around building transactions, balancing UTxOs, and interfacing with Plutus smart contracts.
+* **First class Haskell**: 
+  * Atlas is written in Haskell and brings the complete power of Haskell to one's fingertips.
+  * Avoids code duplication (between the on-chain & off-chain code) and makes programming for Plutus much easier.
+  * Interoperability with rich Cardano Api & Plutus libraries for advanced functionalities as Atlas allows easy conversion between framework's types with those present in these libraries to use with their functions.
+* **Modular providers**: Building transactions on Cardano requires querying ledger information and for that, Atlas supports multiple providers such as [Maestro](https://www.gomaestro.org/), [Cardano DB Sync](https://github.com/input-output-hk/cardano-db-sync), Local Node, or a self-provided option.
+* **Unit tests**: Write realistic tests true to onchain behavior with Atlas' test harness framework based on [Plutus Simple Model](https://github.com/mlabs-haskell/plutus-simple-model)[^1].
+* **Integration tests**: Execute integration tests on a real node under a private network[^2].
+* **Up to date**: Benefit from Cardano's latest innovations such as Reference Inputs, Inline Datum and Reference Scripts.
+
+In summary, Atlas covers all functionalities that are needed to work with Plutus smart contracts and enables one to write the complete server side code in Haskell. But why don't we see all this in action by working on a complete end-to-end example in our [Getting Started](./getting-started) section.
+
+[^1]: See [Unit Tests](./getting-started/unit-tests) guide for more information.
+[^2]: See comparison between writing tests against a real node with that against a mock environment at [Integration Tests](./getting-started/integration-tests).
