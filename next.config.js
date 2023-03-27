@@ -6,6 +6,9 @@ const withNextra = require('nextra')({
 
 // https://github.com/vercel/next.js/issues/29362#issuecomment-971377869
 module.exports = withNextra({
+  images: {
+    unoptimized: true,
+  },
   webpack(config, { isServer, dev }) {
     config.experiments = {
       asyncWebAssembly: true,
