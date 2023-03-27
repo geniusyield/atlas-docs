@@ -8,8 +8,8 @@ import { getTheme } from "../lib/theme/theme";
 import { mutateFontSizeResponsiveness } from "../lib/theme/responsiveTypography";
 
 function App({ Component, pageProps }: AppProps) {
- const theme = createTheme(getTheme());
-  // theme = mutateFontSizeResponsiveness(theme);
+  let theme = createTheme(getTheme());
+  theme = mutateFontSizeResponsiveness(theme);
 
   return (
     <ThemeProvider theme={theme}>

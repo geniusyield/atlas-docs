@@ -1,7 +1,8 @@
 import React from "react";
+import TitleSection from "../module/home/components/TitleSection";
 
 const Home = ({ setActiveMode }: any) => {
-  return <>home</>;
+  return <TitleSection />;
 };
 
 export default Home;

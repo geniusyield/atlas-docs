@@ -1,9 +1,12 @@
 export const lightPalette = {
   // comments to be deleted after the styles are implemented
-  primary: {
+  accent: {
     main: "#000000",
-    grey02Transparency: "#ffffff33", // search bar bg | blue Get Started button border shadow
+    dark: "#1E1E1E", // black background
+    bluePink: "#3514FF",
+    bluePink2: "#333BFF",
     grey01Transparency: "#ffffff1a", // blue Get Started button border
+    grey02Transparency: "#ffffff33", // search bar bg | blue Get Started button border shadow
     offWhite: "#D9D9D9", // github stars container
     black08Transparency: "#D9D9D9", // atlas logo dropdown logo bg
     blueLinearGradient: "linear-gradient(91.69deg, #0038FF 0%, #0031E0 49.48%, #002AC0 100%)", // blue Get Started button
@@ -18,10 +21,6 @@ export const lightPalette = {
     blueGreyLinearGradient2: "linear-gradient(180deg, #ffffff14 0%, #00000000 95.31%)", // Unit tests bg | Integration tests bg
     pinkBlueLinearGradient:
       "linear-gradient(288.85deg, #ffffff00 40.28%, #ffffff33 53.33%, #ffffff33 75.53%, #ffffff00 95.75%)", // Contribute bg
-  },
-
-  textColor: {
-    offBlack: "#000000",
     main08Transparency: "#FFFFFFCC", // documentation writing
     offWhite2: "#BFCAD8", // atlas logo dropdown logo text
     offWhite3: "#E4EAFF",
@@ -29,6 +28,6 @@ export const lightPalette = {
     blueRadialGradient2: "linear-gradient(112.29deg, #1833F5 2.34%, #0094FF 84.24%)", // Contribute section Atlas App & I have a question about bg
     whiteLinearGradient: "linear-gradient(to right, #FFFFFF 54%, #FFFFFF 100%)", // first subtitle
     offWhiteLinearGradient: "linear-gradient(to right, #F2F5FF 100%, #F2F5FF 75%)", // browser titles | Modular Data Providers
-    offWhiteBlue: "#C1CEF1", // browser bullets text | Atlas supports multiple providers of blockchain data
+    offWhiteBlue2: "#C1CEF1", // browser bullets text | Atlas supports multiple providers of blockchain data
   },
 };
