@@ -13,11 +13,10 @@ const config: DocsThemeConfig = {
   },
   docsRepositoryBase: "https://github.com/geniusyield/atlas-docs/tree/main",
   useNextSeoProps() {
-    const { asPath } = useRouter()
-    const description =
-      "All-in-one solution for writing off-chain code for Plutus contracts";
+    const { asPath } = useRouter();
+    const description = "All-in-one solution for writing off-chain code for Plutus contracts";
     return {
-      titleTemplate: asPath === '/' ? "ATLAS Plutus Application Backend | by Genius Yield" : "Atlas | %s",
+      titleTemplate: asPath === "/" ? "ATLAS Plutus Application Backend | by Genius Yield" : "Atlas | %s",
       description,
       canonical: "https://atlas-app.io",
       openGraph: {
