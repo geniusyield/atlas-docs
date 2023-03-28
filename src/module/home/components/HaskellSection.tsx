@@ -1,9 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 import { FC } from "react";
-import { Button, Grid, styled, Typography } from "@mui/material";
+import { Grid, styled, Typography } from "@mui/material";
 
 const Bullet: FC<{ content: string }> = ({ content }) => (
-  <Grid container flex="true" flexDirection="row" alignItems="center" position="relative">
+  <Grid container display="flex" flexDirection="row" alignItems="center" position="relative">
     <StarsWrapper position="absolute">
       <img
         className="shootingStars shootingStarLeft"
@@ -53,7 +53,7 @@ const HaskellSection: FC = () => {
   const thirdBulletContent = "Enjoy a streamlined and efficient interface between on-chain & off-chain code";
 
   return (
-    <HaskellSectionContainer container width="100%" flex="true" overflow="hidden" justifyContent="center">
+    <HaskellSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
       <div className="linearStrokeGradient" />
 
       <img className="blueLightBg" alt="blueLightBg" src={"/images/haskellSection/BlueLightBg.png"} />
@@ -61,7 +61,7 @@ const HaskellSection: FC = () => {
       <img className="pattern" alt="pattern" src={"/images/haskellSection/Pattern.png"} />
 
       <SectionContainer container display="flex" maxWidth="1220px" padding="100px 90px" flexDirection="row">
-        <LeftContainer container flex="true" flexDirection="row" justifyContent="flex-start" width="60%">
+        <LeftContainer container display="flex" flexDirection="row" justifyContent="flex-start" width="60%">
           <img
             className="firstClassHaskell"
             alt="firstClassHaskell"
@@ -70,12 +70,12 @@ const HaskellSection: FC = () => {
             src={"/images/haskellSection/FirstClassHaskell.png"}
           />
 
-          <Grid container flex="true" flexDirection="column">
+          <Grid container display="flex" flexDirection="column">
             <Typography className="title4" variant="title4" width="440px">
               First class Haskell
             </Typography>
           </Grid>
-          <BulletsContainer container flex="true" flexDirection="column" gap="20px">
+          <BulletsContainer container display="flex" flexDirection="column" gap="20px">
             <Bullet content={firstBulletContent}></Bullet>
             <Bullet content={secondBulletContent}></Bullet>
             <Bullet content={thirdBulletContent}></Bullet>
@@ -136,8 +136,6 @@ const HaskellSectionContainer = styled(Grid)(({ theme }) => ({
     top: "0px",
     transform: "translate(-26%, 0%)",
   },
-
-  [theme.breakpoints.down(992)]: {},
 }));
 
 const SectionContainer = styled(Grid)(({ theme }) => ({
