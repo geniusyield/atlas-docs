@@ -12,12 +12,17 @@ const config: DocsThemeConfig = {
   },
   docsRepositoryBase: "https://github.com/geniusyield/atlas-docs/tree/main",
   useNextSeoProps() {
+    const description = "Atlas is an all-in-one, open-sourced Haskell-native application backend for writing off-chain code for on-chain Plutus smart contracts. Designed by Genius Yield, in collaboration with MLabs, Well-Typed and Plank.";
     return {
       titleTemplate: "Atlas | %s",
-      description: "Solution to easily build on Cardano",
+      description,
       canonical: "https://atlas-app.io",
+      openGraph: {
+        url: "https://atlas-app.io",
+        description,
+        // TODO: Add for open-graph image.
+      },
       siteName: "Atlas",
-      // TODO: Need to add for openGraph later
       twitter: {
         handle: "@GeniusyieldO",
         site: "https://www.geniusyield.co",
@@ -27,9 +32,16 @@ const config: DocsThemeConfig = {
   },
   head: (
     <>
-      {/* TODO: add favicon here */}
-      <meta property="og:title" content="Atlas" />
-      <meta property="og:description" content="Solution to easily build on Cardano" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+      <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+      <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+      <link rel="manifest" href="/favicon/site.webmanifest" />
+      <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#5bbad5" />
+      <link rel="shortcut icon" href="/favicon/favicon.ico" />
+      <meta name="msapplication-TileColor" content="#da532c" />
+      <meta name="msapplication-config" content="/favicon/browserconfig.xml" />
+      <meta name="theme-color" content="#ffffff" />
+      {/* TODO: Add for twitter? */}
     </>
   ),
   footer: {
