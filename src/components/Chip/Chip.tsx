@@ -12,7 +12,6 @@ export type ChipProps = Omit<MUIChipProps, "color"> & CustomChipProps;
 
 const Chip: FC<ChipProps> = ({ color = "default", size = "small", ...props }) => {
   const StyledChip = styled(MuiChip)(({ theme }) => ({
-
     ...getCustomSize(theme)[size as CustomChipSize],
     ...getCustomColor(theme)[color as CustomChipColor],
 
@@ -47,7 +46,7 @@ const getCustomSize = (theme: Theme) => ({
     maxHeight: "38.5px",
 
     "& .MuiChip-label": {
-      fontFamily: 'JetBrains Mono, sans-serif',
+      fontFamily: "JetBrains Mono, sans-serif",
       fontWeight: 500,
       fontSize: "16px",
       lineHeight: "20px",
@@ -78,10 +77,10 @@ const getCustomSize = (theme: Theme) => ({
     maxHeight: "24px",
 
     "& .MuiChip-label": {
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 400,
-        fontSize: "13px",
-        lineHeight: "24px",
+      fontFamily: "Inter, sans-serif",
+      fontWeight: 400,
+      fontSize: "13px",
+      lineHeight: "24px",
     },
 
     [theme.breakpoints.down(801)]: {
