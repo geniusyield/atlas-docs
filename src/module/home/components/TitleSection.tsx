@@ -2,6 +2,7 @@
 import { FC } from "react";
 import { Button, Grid, styled, Typography } from "@mui/material";
 import Container from "src/components/Container/Container";
+import Link from "next/link";
 
 const TitleSection: FC = () => (
   <TitleSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
@@ -22,15 +23,17 @@ const TitleSection: FC = () => (
         </Grid>
 
         <TitleButton variant="contained">
-          <Typography className="title8" variant="title8">
-            Get Started
-            <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
-            <img
-              className="doubleArrowsShadow"
-              alt="doubleArrowsShadow"
-              src={"/images/titleSection/DoubleArrowsShadow.png"}
-            />
-          </Typography>
+          <Link href={"/introduction"}>
+            <Typography className="title8" variant="title8">
+              Get Started
+              <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
+              <img
+                className="doubleArrowsShadow"
+                alt="doubleArrowsShadow"
+                src={"/images/titleSection/DoubleArrowsShadow.png"}
+              />
+            </Typography>
+          </Link>
         </TitleButton>
       </TitleContainer>
 
@@ -235,7 +238,7 @@ const TitleButton = styled(Button)(({ theme }) => ({
   border: `1px solid ${theme.palette.accent.grey01Transparency}`,
   boxShadow: `inset 0px 1px 0px ${theme.palette.accent.grey02Transparency}`,
 
-  "& > .MuiTypography-root": {
+  "& .MuiTypography-root": {
     display: "flex",
     alignItems: "center",
     gap: "5px",
