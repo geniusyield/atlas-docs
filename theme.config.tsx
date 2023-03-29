@@ -8,9 +8,6 @@ const config: DocsThemeConfig = {
   project: {
     link: "https://github.com/geniusyield/atlas-docs",
   },
-  chat: {
-    link: "https://discord.gg/TNHf4fs626",
-  },
   docsRepositoryBase: "https://github.com/geniusyield/atlas-docs/tree/main",
   useNextSeoProps() {
     const { asPath } = useRouter();
