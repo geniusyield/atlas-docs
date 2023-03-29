@@ -20,7 +20,6 @@ const Provider: FC<ProviderProps> = ({ content, image }) => (
       <img className="checkmark" alt="checkmark" src={"/images/modularDataSection/Checkmark.png"} />
     </CheckMarkWrapper>
     <Grid display="flex" flexDirection="column" position="relative">
-      <img className="blueShadow" alt="blueShadow" src={"/images/modularDataSection/BlueShadow.png"} />
       <>{image}</>
     </Grid>
 
@@ -140,24 +139,8 @@ const ProvidersContainer = styled(Grid)(({ theme }) => ({
     margin: "-5px auto 0",
   },
 
-  "& .blueShadow": {
-    position: "absolute",
-    top: "0",
-    left: "0",
-    transform: "translate(-38%, -40%)",
-  },
-
   "& > .MuiGrid-container": {
     width: "270px",
-  },
-
-  "& > .MuiGrid-container:last-of-type": {
-    "& .blueShadow": {
-      position: "absolute",
-      top: "0",
-      left: "0",
-      transform: "translate(-18%, -40%)",
-    },
   },
 
   [theme.breakpoints.down(992)]: {
@@ -191,20 +174,12 @@ const ProvidersContainer = styled(Grid)(({ theme }) => ({
     "& > .MuiGrid-container": {
       width: "180px",
     },
-
-    "& > .MuiGrid-container:last-of-type": {
-      marginLeft: "-40px",
-    },
   },
 
   [theme.breakpoints.down(560)]: {
     flexDirection: "column",
     alignItems: "center",
     padding: "50px 0px",
-
-    "& > .MuiGrid-container:last-of-type": {
-      marginLeft: "-50px",
-    },
   },
 }));
 

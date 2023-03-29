@@ -2,6 +2,7 @@
 import { FC } from "react";
 import { Button, Grid, styled, Typography } from "@mui/material";
 import Container from "src/components/Container/Container";
+import Link from "next/link";
 
 const TitleSection: FC = () => (
   <TitleSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
@@ -22,15 +23,17 @@ const TitleSection: FC = () => (
         </Grid>
 
         <TitleButton variant="contained">
-          <Typography className="title8" variant="title8">
-            Get Started
-            <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
-            <img
-              className="doubleArrowsShadow"
-              alt="doubleArrowsShadow"
-              src={"/images/titleSection/DoubleArrowsShadow.png"}
-            />
-          </Typography>
+          <Link href={"/introduction"}>
+            <Typography className="title8" variant="title8">
+              Get Started
+              <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
+              <img
+                className="doubleArrowsShadow"
+                alt="doubleArrowsShadow"
+                src={"/images/titleSection/DoubleArrowsShadow.png"}
+              />
+            </Typography>
+          </Link>
         </TitleButton>
       </TitleContainer>
 
@@ -64,8 +67,6 @@ const TitleSection: FC = () => (
               UTxOs, and interfacing with Plutus smart contracts.
             </Typography>
           </Grid>
-
-          <img className="codeMobile" alt="codeMobile" src={"/images/titleSection/CodeMobile.png"}></img>
         </BrowserText>
       </BrowserContainer>
     </ContainerWrapper>
@@ -181,11 +182,14 @@ const ContainerWrapper = styled(Grid)(({ theme }) => ({
 }));
 
 const TitleContainer = styled(Grid)(({ theme }) => ({
-  zIndex: "2",
+  "& .title1": {
+    zIndex: "2",
+  },
 
   "& .title5": {
     width: "480px",
     margin: "0 auto",
+    zIndex: "2",
   },
 
   [theme.breakpoints.down(992)]: {
@@ -234,7 +238,7 @@ const TitleButton = styled(Button)(({ theme }) => ({
   border: `1px solid ${theme.palette.accent.grey01Transparency}`,
   boxShadow: `inset 0px 1px 0px ${theme.palette.accent.grey02Transparency}`,
 
-  "& > .MuiTypography-root": {
+  "& .MuiTypography-root": {
     display: "flex",
     alignItems: "center",
     gap: "5px",
@@ -260,10 +264,6 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     display: "none",
   },
 
-  "& .codeMobile": {
-    display: "none",
-  },
-
   "& > .browserSection": {
     position: "absolute",
     left: "50%",
@@ -278,7 +278,7 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     zIndex: "3",
     position: "absolute",
     left: "50%",
-    top: "100px",
+    top: "110px",
     transform: "translate(-50%, -50%)",
   },
 
@@ -340,7 +340,7 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
 
     "& .browserSection": {
       top: "10vw",
-      left: "30px",
+      left: "20px",
       width: "1000px",
       margin: "0",
       transform: "none",
@@ -357,27 +357,9 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     },
   },
 
-  [theme.breakpoints.down(560)]: {
-    "& .codeMobile": {
-      display: "inline-block",
-    },
-  },
-
-  [theme.breakpoints.down(450)]: {
+  [theme.breakpoints.down(400)]: {
     "& .browserSection": {
-      left: "17vw",
-    },
-  },
-
-  [theme.breakpoints.down(420)]: {
-    "& .browserSection": {
-      left: "22vw",
-    },
-  },
-
-  [theme.breakpoints.down(380)]: {
-    "& .browserSection": {
-      left: "32vw",
+      left: "30px",
     },
   },
 
@@ -385,15 +367,11 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     "& .browserSectionMobile": {
       display: "inline-block",
       position: "absolute",
-      left: "29vw",
+      left: "60px",
       top: "1vw",
     },
 
     "& .browserSection": {
-      display: "none",
-    },
-
-    "& .codeMobile": {
       display: "none",
     },
 
@@ -448,19 +426,11 @@ const BrowserText = styled(Grid)(({ theme }) => ({
   },
 
   [theme.breakpoints.down(450)]: {
-    paddingLeft: "9vw",
-  },
-
-  [theme.breakpoints.down(450)]: {
-    paddingLeft: "15vw",
-  },
-
-  [theme.breakpoints.down(380)]: {
-    paddingLeft: "24vw",
+    paddingLeft: "0px",
   },
 
   [theme.breakpoints.down(360)]: {
-    paddingLeft: "16vw",
+    paddingLeft: "20px",
     paddingBottom: "360px",
   },
 

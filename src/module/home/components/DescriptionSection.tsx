@@ -117,6 +117,7 @@ const DescriptionSectionContainer = styled(Grid)(({ theme }) => ({
   background: "black",
   position: "relative",
   backgroundSize: "100% 100%",
+  paddingBottom: "50px",
 }));
 
 const FirstColumn = styled(Grid)(({ theme }) => ({
@@ -134,6 +135,7 @@ const FirstColumn = styled(Grid)(({ theme }) => ({
 
   [theme.breakpoints.down(776)]: {
     height: "450px",
+    padding: "40px 20px 20px",
 
     "& > .code": {
       bottom: "0px",
@@ -181,6 +183,7 @@ const LeftRow = styled(Grid)(({ theme }) => ({
 
   [theme.breakpoints.down(776)]: {
     width: "100%",
+    padding: "20px 20px 50px",
 
     "& > .MuiGrid-root": {
       "& > img": {
@@ -221,6 +224,7 @@ const RightRow = styled(Grid)(({ theme }) => ({
 
   [theme.breakpoints.down(776)]: {
     width: "100%",
+    padding: "20px",
 
     "& > .MuiGrid-root": {
       "& > img": {
