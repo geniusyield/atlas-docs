@@ -56,6 +56,10 @@ const getCustomColor = (theme: Theme) => ({
     background: "#8298FF",
     borderRadius: "20px",
     padding: "10px 30px",
+
+    "&:hover": {
+      background: "#8298FF",
+    },
   },
   transparent: {
     background: "none",

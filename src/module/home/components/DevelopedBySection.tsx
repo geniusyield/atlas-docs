@@ -13,12 +13,16 @@ const DevelopedBySection = () => (
         <Typography fontWeight="600" fontSize="36px" lineHeight="44px" color="white" marginBottom="44px">
           Developed by
         </Typography>
-        <GeniusYieldLogo />
+        <a href="https://www.geniusyield.co/" target="_blank">
+          <GeniusYieldLogo />
+        </a>
         <TextWithButton>
           <Typography fontWeight="400" fontSize="24px" lineHeight="44px" letterSpacing="-0.02em" color="#C1CEF1">
             Under the direction of Dr. Lars Brünjes
           </Typography>
-          <IconButton variant="contained">
+          <IconButton
+            variant="contained"
+            href="https://www.linkedin.com/in/dr-lars-br%C3%BCnjes-1640993b/?originalSubdomain=de">
             <LinkedInIcon />
           </IconButton>
         </TextWithButton>

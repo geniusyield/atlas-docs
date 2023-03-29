@@ -14,12 +14,11 @@ import {
 } from "../Icons/Icons";
 
 const socials = [
-  { id: 1, icon: <TwitterIcon />, href: "#" },
-  { id: 2, icon: <MediumIcon />, href: "#" },
-  { id: 3, icon: <DiscordIcon />, href: "#" },
-  { id: 4, icon: <InstagramIcon />, href: "#" },
-  { id: 5, icon: <TelegramIcon />, href: "#" },
-  { id: 6, icon: <YoutubeIcon />, href: "#" },
+  { id: 1, icon: <TwitterIcon />, href: "https://twitter.com/GeniusyieldO" },
+  { id: 2, icon: <MediumIcon />, href: "https://geniusyield.medium.com/" },
+  { id: 3, icon: <DiscordIcon />, href: "https://discord.com/invite/D8HNJ3zhwH" },
+  { id: 5, icon: <TelegramIcon />, href: "https://t.me/geniusyield_official" },
+  { id: 6, icon: <YoutubeIcon />, href: "https://www.youtube.com/channel/UC0Lw_flS1WokWYH9ZHIQv2g/featured" },
 ];
 
 const Footer = () => (
@@ -29,7 +28,13 @@ const Footer = () => (
         <ColorLogo />
         <TextWrapper>
           <Typography fontWeight="400px" fontSize="14px" lineHeight="18px" color="#C1CEF1">
-            Atlas is Licensed under <b style={{ textDecoration: "underline" }}>Apache 2.0</b>
+            Atlas is Licensed under{" "}
+            <a
+              style={{ textDecoration: "underline" }}
+              href="https://github.com/geniusyield/atlas-docs/blob/main/LICENSE"
+              target="_blank">
+              Apache 2.0
+            </a>
           </Typography>
           <Typography fontWeight="400" fontSize="14px" lineHeight="18px" color="#C1CEF1">
             The all-in-one open source solution for writing off-chain code for on-chain Plutus smart contracts
@@ -48,7 +53,9 @@ const Footer = () => (
           <Typography fontWeight="400" fontSize="16px" lineHeight="20px" color="#C1CEF1" textAlign="end">
             Powered by
           </Typography>
-          <GeniusYieldLogo />
+          <a target="_blank" href="https://www.geniusyield.co/">
+            <GeniusYieldLogo />
+          </a>
         </GeniusYieldLogoWrapper>
       </Column>
     </Wrapper>
