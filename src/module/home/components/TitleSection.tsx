@@ -1,19 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
 import { FC } from "react";
 import { Button, Grid, styled, Typography } from "@mui/material";
+import Container from "src/components/Container/Container";
 
-const TitleSection: FC = () => {
-  return (
-    <TitleSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
-      <img className="purpleTopShadow" alt="purpleTopShadow" src={"/images/titleSection/PurpleTopShadow.png"} />
-      <img className="blueTopShadow" alt="blueTopShadow" src={"/images/titleSection/BlueTopShadow.png"} />
+const TitleSection: FC = () => (
+  <TitleSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
+    <img className="purpleTopShadow" alt="purpleTopShadow" src={"/images/titleSection/PurpleTopShadow.png"} />
+    <img className="blueTopShadow" alt="blueTopShadow" src={"/images/titleSection/BlueTopShadow.png"} />
 
-      <img
-        className="atlasHoldingGalaxy"
-        alt="atlasHoldingGalaxy"
-        src={"/images/titleSection/AtlasHoldingGalaxy.png"}
-      />
-
+    <img className="atlasHoldingGalaxy" alt="atlasHoldingGalaxy" src={"/images/titleSection/AtlasHoldingGalaxy.png"} />
+    <ContainerWrapper>
       <TitleContainer container display="flex" marginTop="250px" flexDirection="column">
         <Typography className="title1" variant="title1" textAlign="center">
           Making dApps easy
@@ -42,8 +38,8 @@ const TitleSection: FC = () => {
         container
         display="flex"
         flexDirection="column"
-        width="1220px"
-        padding="0 60px"
+        width="100%"
+        padding="0 50px"
         margin="660px auto 0">
         <img className="browserSection" alt="browserSection" src={"/images/titleSection/BrowserSection.png"} />
         <img
@@ -72,9 +68,9 @@ const TitleSection: FC = () => {
           <img className="codeMobile" alt="codeMobile" src={"/images/titleSection/CodeMobile.png"}></img>
         </BrowserText>
       </BrowserContainer>
-    </TitleSectionContainer>
-  );
-};
+    </ContainerWrapper>
+  </TitleSectionContainer>
+);
 
 const TitleSectionContainer = styled(Grid)(({ theme }) => ({
   backgroundColor: theme.palette.accent.dark,
@@ -178,6 +174,12 @@ const TitleSectionContainer = styled(Grid)(({ theme }) => ({
   },
 }));
 
+const ContainerWrapper = styled(Grid)(({ theme }) => ({
+  [theme.breakpoints.down(992)]: {
+    padding: "0px",
+  },
+}));
+
 const TitleContainer = styled(Grid)(({ theme }) => ({
   zIndex: "2",
 
@@ -266,8 +268,7 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     position: "absolute",
     left: "50%",
     top: "50%",
-    maxWidth: "1220px",
-    width: "90%",
+    width: "100%",
     margin: "0 auto",
     transform: "translate(-50%, -50%)",
   },
@@ -364,19 +365,19 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
 
   [theme.breakpoints.down(450)]: {
     "& .browserSection": {
-      left: "20vw",
+      left: "17vw",
     },
   },
 
   [theme.breakpoints.down(420)]: {
     "& .browserSection": {
-      left: "25vw",
+      left: "22vw",
     },
   },
 
   [theme.breakpoints.down(380)]: {
     "& .browserSection": {
-      left: "35vw",
+      left: "32vw",
     },
   },
 
@@ -404,7 +405,7 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
 
 const BrowserText = styled(Grid)(({ theme }) => ({
   zIndex: "3",
-  padding: "0 0 180px 30px",
+  paddingBottom: "180px",
 
   [theme.breakpoints.down(992)]: {
     marginTop: "24vw",

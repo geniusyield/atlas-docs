@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { FC } from "react";
 import { Grid, styled, Typography } from "@mui/material";
+import Container from "src/components/Container/Container";
 
 const Bullet: FC<{ content: string }> = ({ content }) => (
   <Grid container display="flex" flexDirection="row" alignItems="center" position="relative">
@@ -54,50 +55,57 @@ const HaskellSection: FC = () => {
   const thirdBulletContent = "Enjoy a streamlined and efficient interface between on-chain & off-chain code";
 
   return (
-    <HaskellSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
-      <div className="linearStrokeGradient" />
+    <Container>
+      <HaskellSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
+        <div className="linearStrokeGradient" />
 
-      <img className="blueLightBg" alt="blueLightBg" src={"/images/haskellSection/BlueLightBg.png"} />
-      <img className="blueLightBg2" alt="blueLightBg2" src={"/images/haskellSection/BlueLightBg2.png"} />
-      <img className="pattern" alt="pattern" src={"/images/haskellSection/Pattern.png"} />
+        <img className="blueLightBg" alt="blueLightBg" src={"/images/haskellSection/BlueLightBg.png"} />
+        <img className="blueLightBg2" alt="blueLightBg2" src={"/images/haskellSection/BlueLightBg2.png"} />
+        <img className="pattern" alt="pattern" src={"/images/haskellSection/Pattern.png"} />
 
-      <SectionContainer
-        container
-        display="flex"
-        maxWidth="1220px"
-        padding="100px 90px"
-        flexDirection="row"
-        alignItems="flex-start">
-        <LeftContainer container display="flex" flexDirection="row" justifyContent="flex-start" width="60%" gap="30px">
-          <img
-            className="firstClassHaskell"
-            alt="firstClassHaskell"
-            width="68px"
-            height="69px"
-            src={"/images/haskellSection/FirstClassHaskell.png"}
-          />
+        <SectionContainer
+          container
+          display="flex"
+          padding="100px 50px 50px"
+          flexDirection="row"
+          alignItems="flex-start">
+          <LeftContainer
+            container
+            display="flex"
+            flexDirection="row"
+            justifyContent="flex-start"
+            width="60%"
+            gap="30px">
+            <img
+              className="firstClassHaskell"
+              alt="firstClassHaskell"
+              width="68px"
+              height="69px"
+              src={"/images/haskellSection/FirstClassHaskell.png"}
+            />
 
-          <Grid container display="flex" flexDirection="column">
-            <Typography className="title4" variant="title4" width="440px">
-              First class Haskell
-            </Typography>
-          </Grid>
-          <BulletsContainer container display="flex" flexDirection="column" gap="20px">
-            <Bullet content={firstBulletContent}></Bullet>
-            <Bullet content={secondBulletContent}></Bullet>
-            <Bullet content={thirdBulletContent}></Bullet>
-          </BulletsContainer>
-        </LeftContainer>
+            <Grid container display="flex" flexDirection="column">
+              <Typography className="title4" variant="title4" width="440px">
+                First class Haskell
+              </Typography>
+            </Grid>
+            <BulletsContainer container display="flex" flexDirection="column" gap="20px">
+              <Bullet content={firstBulletContent}></Bullet>
+              <Bullet content={secondBulletContent}></Bullet>
+              <Bullet content={thirdBulletContent}></Bullet>
+            </BulletsContainer>
+          </LeftContainer>
 
-        <RightContainer container width="40%">
-          <img
-            className="codeWithAtlasLogo"
-            alt="codeWithAtlasLogo"
-            src={"/images/haskellSection/CodeWithAtlasLogo.png"}
-          />
-        </RightContainer>
-      </SectionContainer>
-    </HaskellSectionContainer>
+          <RightContainer container width="40%">
+            <img
+              className="codeWithAtlasLogo"
+              alt="codeWithAtlasLogo"
+              src={"/images/haskellSection/CodeWithAtlasLogo.png"}
+            />
+          </RightContainer>
+        </SectionContainer>
+      </HaskellSectionContainer>
+    </Container>
   );
 };
 
@@ -147,7 +155,7 @@ const SectionContainer = styled(Grid)(({ theme }) => ({
   position: "relative",
 
   [theme.breakpoints.down(992)]: {
-    padding: "100px 70px",
+    padding: "40px 20px",
   },
 
   [theme.breakpoints.down(776)]: {
@@ -229,6 +237,7 @@ const RightContainer = styled(Grid)(({ theme }) => ({
   },
 
   [theme.breakpoints.down(776)]: {
+    marginTop: "50px",
     left: "-50px",
   },
 }));
