@@ -4,19 +4,22 @@ import { Button, Grid, styled, Typography } from "@mui/material";
 
 const TitleSection: FC = () => {
   return (
-    <TitleSectionContainer container width="100%" flex="true" overflow="hidden" justifyContent="center">
+    <TitleSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
+      <img className="purpleTopShadow" alt="purpleTopShadow" src={"/images/titleSection/PurpleTopShadow.png"} />
+      <img className="blueTopShadow" alt="blueTopShadow" src={"/images/titleSection/BlueTopShadow.png"} />
+
       <img
         className="atlasHoldingGalaxy"
         alt="atlasHoldingGalaxy"
         src={"/images/titleSection/AtlasHoldingGalaxy.png"}
       />
 
-      <TitleContainer container flex="true" marginTop="250px" flexDirection="column">
+      <TitleContainer container display="flex" marginTop="250px" flexDirection="column">
         <Typography className="title1" variant="title1" textAlign="center">
           Making dApps easy
         </Typography>
 
-        <Grid container flex="true" flexDirection="column" marginTop="20px">
+        <Grid container display="flex" flexDirection="column" marginTop="20px">
           <Subtitle className="title5" variant="title5" textAlign="center">
             An all-in-one open source solution to build on Cardano
           </Subtitle>
@@ -24,7 +27,7 @@ const TitleSection: FC = () => {
 
         <TitleButton variant="contained">
           <Typography className="title8" variant="title8">
-            Get Started{" "}
+            Get Started
             <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
             <img
               className="doubleArrowsShadow"
@@ -37,7 +40,7 @@ const TitleSection: FC = () => {
 
       <BrowserContainer
         container
-        flex="true"
+        display="flex"
         flexDirection="column"
         width="1220px"
         padding="0 60px"
@@ -51,15 +54,15 @@ const TitleSection: FC = () => {
 
         <img className="browserAtlasLogo" alt="browserAtlasLogo" src={"/images/titleSection/AtlasLogo.png"} />
 
-        <BrowserText container flex="true" marginTop="200px" flexDirection="row" justifyContent="flex-start">
+        <BrowserText container display="flex" marginTop="200px" flexDirection="row" justifyContent="flex-start">
           <img className="blueBrowserTabs" alt="blueBrowserTabs" src={"/images/titleSection/BlueBrowserTabs.png"} />
 
-          <Grid container flex="true" marginTop="40px" flexDirection="column">
+          <Grid container display="flex" marginTop="40px" flexDirection="column">
             <Typography className="title4" variant="title4" width="440px">
               Build transactions and execute smart contracts with ease
             </Typography>
           </Grid>
-          <Grid container flex="true" marginTop="30px" flexDirection="column">
+          <Grid container display="flex" marginTop="30px" flexDirection="column">
             <Typography className="text1" variant="text1" width="440px">
               Leverage Atlas intuitive API to abstract away the complexity around building transactions, balancing
               UTxOs, and interfacing with Plutus smart contracts.
@@ -80,6 +83,18 @@ const TitleSectionContainer = styled(Grid)(({ theme }) => ({
   backgroundPosition: "0px 0px,0px 0px,0px 0px,0px 0px,0px 0px",
   background: "black",
   overflow: "hidden",
+
+  "& > .purpleTopShadow": {
+    position: "absolute",
+    top: "0px",
+    left: "0px",
+  },
+
+  "& > .blueTopShadow": {
+    position: "absolute",
+    top: "0px",
+    right: "0px",
+  },
 
   "& > .atlasHoldingGalaxy": {
     position: "absolute",
@@ -201,7 +216,7 @@ const TitleContainer = styled(Grid)(({ theme }) => ({
   },
 }));
 
-const Subtitle = styled(Typography)(({ theme }) => ({
+const Subtitle = styled(Typography)(({}) => ({
   background:
     "radial-gradient(63.67% 100% at 50% 100%, #073bf44f 0%, #0d41f600 100%), linear-gradient(180deg, #ffffff8a 0%, #FFFFFF 100%)",
   WebkitBackgroundClip: "text",
@@ -212,7 +227,7 @@ const TitleButton = styled(Button)(({ theme }) => ({
   width: "204px",
   height: "68px",
   margin: "40px auto 0",
-  background: theme.palette.accent.blueLinearGradient,
+  background: `${theme.palette.accent.blueLinearGradient} !important`,
   borderRadius: theme.borderRadius.sm,
   border: `1px solid ${theme.palette.accent.grey01Transparency}`,
   boxShadow: `inset 0px 1px 0px ${theme.palette.accent.grey02Transparency}`,

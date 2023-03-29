@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { Button, Drawer, Grid, styled, Typography } from "@mui/material";
 import { ReactNode, useState } from "react";
 import Link from "next/link";
