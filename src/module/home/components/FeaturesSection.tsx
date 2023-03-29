@@ -152,7 +152,7 @@ const Section = styled("div")(({ theme }) => ({
 
   [theme.breakpoints.down("sm")]: {
     position: "static",
-    
+
     "&:first-of-type": {
       paddingBottom: "55px",
     },

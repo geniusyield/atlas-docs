@@ -1,4 +1,5 @@
 import { styled, Typography } from "@mui/material";
+import Image from "next/image";
 import React from "react";
 import IconButton from "../../../components/Button/IconButton";
 import LargeContainer from "../../../components/Container/LargeContainer";
@@ -21,7 +22,7 @@ const DevelopedBySection = () => (
           </IconButton>
         </TextWithButton>
         <ImageWrapper>
-          <img src="/images/developedBySection/image.png" alt="" />
+          <Image src="/images/developedBySection/image.png" alt="" />
         </ImageWrapper>
       </Content>
     </LargeContainer>

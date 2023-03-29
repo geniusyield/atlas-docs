@@ -1,11 +1,17 @@
 {
-  "getting-started": "Getting Started",
   "index": {
     "title": "Aiken",
-    "type": "page",
     "display": "hidden",
     "theme": {
       "layout": "raw"
     }
-  }
+  },
+  "documentation": {
+    "title": "Documentation",
+    "type": "page",
+    "href": "/introduction"
+  },
+  "introduction": "Introduction",
+  "getting-started": "Getting Started"
 }
+
