@@ -10,6 +10,7 @@ export const lightPalette = {
     offWhite: "#D9D9D9", // github stars container
     black08Transparency: "#D9D9D9", // atlas logo dropdown logo bg
     blueLinearGradient: "linear-gradient(91.69deg, #0038FF 0%, #0031E0 49.48%, #002AC0 100%)", // blue Get Started button
+    blueBlackLinearGradient: "linear-gradient(180deg, #05081000 0%, #050810 76.47%)",
     offBlack: "#161923", // browser tab bg
     linearGreyShadowBigScreens:
       "0px 453px 127px #0000001a, 0px 290px 116px #0000000f, 0px 163px 98px #00000036, 0px 72px 72px #0000005c, 0px 18px 40px #0000006b, 0px 0px 0px #0000006b", // browser tab shadow

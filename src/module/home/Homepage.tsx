@@ -4,8 +4,11 @@ import React from "react";
 import Footer from "src/components/Footer/Footer";
 import Navigation from "src/components/Navigation/Navigation";
 import AboutSection from "./components/AboutSection";
+import DescriptionSection from "./components/DescriptionSection";
 import DevelopedBySection from "./components/DevelopedBySection";
 import FeaturesSection from "./components/FeaturesSection";
+import HaskellSection from "./components/HaskellSection";
+import ModularDataSection from "./components/ModularDataSection";
 import PartnersSection from "./components/PartnersSection";
 import TitleSection from "./components/TitleSection";
 
@@ -14,6 +17,9 @@ const Homepage = () => {
     <Wrapper>
       {/* <Navigation /> */}
       <TitleSection />
+      <HaskellSection />
+      <ModularDataSection />
+      <DescriptionSection />
       <FeaturesSection />
       <HighlihtedSections>
         <AboutSection />

@@ -119,10 +119,10 @@ interface BrpParams {
 type SupportedWallets = "nami" | "eternl";
 
 export const fromHex = (hexString: string): Uint8Array =>
-  Uint8Array.from(hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+  Uint8Array.from(hexString.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16)));
 
 export const toHex = (bytes: Uint8Array): string =>
-  bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
+  bytes.reduce((str: string, byte: number) => str + byte.toString(16).padStart(2, "0"), "");
 
 const signAndSubmitTx = async (api: WalletApi, txCborHex: string): Promise<string> => {
   console.log("Unsigned transaction CBOR hex is " + txCborHex);
@@ -192,7 +192,7 @@ const BrowserFunctions = () => {
         browserWallet: selectedWallet,
       },
     });
-    const onSubmit: SubmitHandler<swFormValues> = (data) => {
+    const onSubmit: SubmitHandler<swFormValues> = (data: any) => {
       selectedWallet = data.browserWallet;
       console.log("Wallet selected: ", selectedWallet);
     };
@@ -205,7 +205,7 @@ const BrowserFunctions = () => {
             ...formStyle,
           }}>
           <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "full" }}>
-            {supportedWallets.map((elem, ix) => (
+            {supportedWallets.map((elem: SupportedWallets, ix: number) => (
               <span key={ix} style={{ marginRight: "20px" }}>
                 <label style={{ marginRight: "10px" }}>{elem.charAt(0).toUpperCase() + elem.slice(1)}</label>
                 <input {...register("browserWallet", simpleRequired)} type="radio" value={elem} />
@@ -231,7 +231,7 @@ const BrowserFunctions = () => {
       formState: { errors, isSubmitting, isSubmitSuccessful },
       handleSubmit,
     } = useForm<SbpFormValues>({ mode: "onTouched" });
-    const onSubmit: SubmitHandler<SbpFormValues> = (data) => {
+    const onSubmit: SubmitHandler<SbpFormValues> = (data: SbpFormValues) => {
       brpParams = {
         brpOracleAddress: data.oracleAddress,
         brpBetUntil: data.betUntil,
@@ -296,7 +296,7 @@ const BrowserFunctions = () => {
       handleSubmit,
     } = useForm<arsFormValues>({ mode: "onTouched" });
 
-    const onSubmit: SubmitHandler<arsFormValues> = async (values) => {
+    const onSubmit: SubmitHandler<arsFormValues> = async (values: arsFormValues) => {
       try {
         if (brpParams === undefined) throw "Not yet given script parameters";
 
@@ -372,7 +372,7 @@ const BrowserFunctions = () => {
       formState: { errors, isSubmitting },
       handleSubmit,
     } = useForm<pbFormValues>({ mode: "onTouched" });
-    const onSubmit: SubmitHandler<pbFormValues> = async (values) => {
+    const onSubmit: SubmitHandler<pbFormValues> = async (values: pbFormValues) => {
       try {
         if (brpParams === undefined) throw "Not yet given script parameters";
         console.log("brp params raw", brpParams);
@@ -467,7 +467,7 @@ const BrowserFunctions = () => {
       formState: { errors, isSubmitting },
       handleSubmit,
     } = useForm<ariFormValues>({ mode: "onTouched" });
-    const onSubmit: SubmitHandler<ariFormValues> = async (values) => {
+    const onSubmit: SubmitHandler<ariFormValues> = async (values: ariFormValues) => {
       try {
         if (brpParams === undefined) throw "Not yet given script parameters";
         console.log("brp params raw", brpParams);
@@ -535,7 +535,7 @@ const BrowserFunctions = () => {
       formState: { errors, isSubmitting },
       handleSubmit,
     } = useForm<tbFormValues>({ mode: "onTouched" });
-    const onSubmit: SubmitHandler<tbFormValues> = async (values) => {
+    const onSubmit: SubmitHandler<tbFormValues> = async (values: tbFormValues) => {
       try {
         if (brpParams === undefined) throw "Not yet given script parameters";
         console.log("brp params raw", brpParams);
