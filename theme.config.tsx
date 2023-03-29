@@ -55,7 +55,7 @@ const config: DocsThemeConfig = {
     component: <></>,
   },
   nextThemes: {
-    defaultTheme: 'dark'
+    defaultTheme: "dark",
   },
   darkMode: false,
   sidebar: {
