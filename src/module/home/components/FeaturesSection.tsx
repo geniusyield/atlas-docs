@@ -14,25 +14,6 @@ const FeaturesSection = () => {
       title: "Contribute",
       subtitle: "Join an open source community of top Haskell / Plutus developers and contribute to Atlas.",
       action: (
-        // <Tooltip
-        //     open={true}
-        //     placement="right"
-        //     title={
-        //         <>
-        //             <StarIcon />
-        //             <Typography
-        //                 fontFamily="Inter, sans-serif"
-        //                 fontWeight="400"
-        //                 fontSize="12px"
-        //                 lineHeight="20px"
-        //                 color="#FFFFFF"
-        //             >
-        //                 161
-        //             </Typography>
-        //         </>
-        //     }
-        //     arrow
-        // >
         <ButtonWrapper>
           <Button>
             <GitHubIcon />
@@ -42,7 +23,6 @@ const FeaturesSection = () => {
           </Button>
         </ButtonWrapper>
       ),
-      // </Tooltip>
     },
     {
       title: "Do you need help?",
@@ -53,29 +33,56 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <Container>
-      <Wrapper>
-        {sections.map(({ title, subtitle, action }) => (
-          <Section key={title}>
-            <TextWrapper>
-              <Typography fontWeight="600" fontSize="40px" lineHeight="30px" color="#FFFFFF">
-                {title}
-              </Typography>
-              <Typography fontWeight="400" fontSize="22px" lineHeight="34px" color="rgb(193, 206, 241,0.8)">
-                {subtitle}
-              </Typography>
-            </TextWrapper>
-            {action}
-          </Section>
-        ))}
-        {/* <img className="pattern one" src="/images/featureSection/pattern1.png" alt="" />
-                <img className="pattern two" src="/images/featureSection/pattern2.png" alt="" /> */}
-      </Wrapper>
-    </Container>
+    <Wrapper>
+      <Container>
+        <Content>
+          {sections.map(({ title, subtitle, action }) => (
+            <Section key={title}>
+              <TextWrapper>
+                <Typography fontWeight="600" fontSize="40px" lineHeight="30px" color="#FFFFFF">
+                  {title}
+                </Typography>
+                <Typography fontWeight="400" fontSize="22px" lineHeight="34px" color="rgb(193, 206, 241,0.8)">
+                  {subtitle}
+                </Typography>
+              </TextWrapper>
+              {action}
+            </Section>
+          ))}
+          <GradientTop />
+          <GradientBottom />
+        </Content>
+      </Container>
+    </Wrapper>
   );
 };
 
-const Wrapper = styled("div")(({ theme }) => ({
+const Wrapper = styled("div")({
+  position: "relative",
+  overflow: "hidden",
+});
+
+const GradientTop = styled("div")({
+  position: "absolute",
+  width: "985px",
+  height: "985px",
+  right: "-200px",
+  top: "-200px",
+  background: "linear-gradient(73.7deg, #0029FF 31.41%, #074DFF 75.29%)",
+  filter: "blur(296px)",
+});
+
+const GradientBottom = styled("div")({
+  position: "absolute",
+  width: "617px",
+  height: "557px",
+  left: "39px",
+  bottom: "-298px",
+  background: "linear-gradient(45.47deg, #FF00D6 2.3%, #4440FF 74.84%)",
+  filter: "blur(192px)",
+});
+
+const Content = styled("div")(({ theme }) => ({
   position: "relative",
   overflow: "hidden",
   padding: "100.5px 68px 64px 62px",
@@ -123,6 +130,8 @@ const Section = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "end",
   justifyContent: "space-between",
+  position: "relative",
+  zIndex: "10",
 
   "&:first-of-type": {
     paddingBottom: "71px",
@@ -142,6 +151,8 @@ const Section = styled("div")(({ theme }) => ({
   },
 
   [theme.breakpoints.down("sm")]: {
+    position: "static",
+    
     "&:first-of-type": {
       paddingBottom: "55px",
     },

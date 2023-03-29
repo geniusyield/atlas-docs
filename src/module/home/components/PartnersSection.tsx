@@ -38,6 +38,8 @@ const Wrapper = styled("div")(({ theme }) => ({
   alignItems: "center",
   marginTop: "140px",
   marginBottom: "127px",
+  position: "relative",
+  zIndex: 10,
 
   [theme.breakpoints.down(769)]: {
     "& .MuiTypography-root": {
@@ -80,6 +82,10 @@ const Card = styled("div")(({ theme }) => ({
   a: {
     marginTop: "auto",
     maxWidth: "105px",
+  },
+
+  img: {
+    marginTop: "auto",
   },
 
   [theme.breakpoints.down(769)]: {

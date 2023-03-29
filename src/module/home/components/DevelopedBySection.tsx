@@ -5,33 +5,82 @@ import LargeContainer from "../../../components/Container/LargeContainer";
 import { GeniusYieldLogo, LinkedInIcon } from "../../../components/Icons/Icons";
 
 const DevelopedBySection = () => (
-  <LargeContainer>
-    <Wrapper>
-      <Typography fontWeight="600" fontSize="36px" lineHeight="44px" color="white" marginBottom="44px">
-        Developed by
-      </Typography>
-      <GeniusYieldLogo />
-      <TextWithButton>
-        <Typography fontWeight="400" fontSize="24px" lineHeight="44px" letterSpacing="-0.02em" color="#C1CEF1">
-          Under the direction of Dr. Lars Brünjes
+  <>
+    <LargeContainer>
+      <Content>
+        <Typography fontWeight="600" fontSize="36px" lineHeight="44px" color="white" marginBottom="44px">
+          Developed by
         </Typography>
-        <IconButton variant="contained">
-          <LinkedInIcon />
-        </IconButton>
-      </TextWithButton>
-      <ImageWrapper>
-        <img src="/images/developedBySection/image.png" alt="" />
-      </ImageWrapper>
-    </Wrapper>
-  </LargeContainer>
+        <GeniusYieldLogo />
+        <TextWithButton>
+          <Typography fontWeight="400" fontSize="24px" lineHeight="44px" letterSpacing="-0.02em" color="#C1CEF1">
+            Under the direction of Dr. Lars Brünjes
+          </Typography>
+          <IconButton variant="contained">
+            <LinkedInIcon />
+          </IconButton>
+        </TextWithButton>
+        <ImageWrapper>
+          <img src="/images/developedBySection/image.png" alt="" />
+        </ImageWrapper>
+      </Content>
+    </LargeContainer>
+    <GradientLarge />
+    <GradientMedium />
+    <GradientSmall />
+  </>
 );
 
-const Wrapper = styled("div")(({ theme }) => ({
+const GradientLarge = styled("div")(() => ({
+  position: "absolute",
+  width: "1440px",
+  height: "1440px",
+  background: "#001DFF",
+  mixBlendMode: "screen",
+  opacity: "0.5",
+  filter: "blur(300px)",
+  top: "1200px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  zIndex: 4,
+}));
+
+const GradientMedium = styled("div")(() => ({
+  position: "absolute",
+  background: "#001DFF",
+  mixBlendMode: "screen",
+  opacity: "0.5",
+  filter: "blur(270px)",
+  width: "1152px",
+  height: "1152px",
+  top: "1200px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  zIndex: 4,
+}));
+
+const GradientSmall = styled("div")(() => ({
+  position: "absolute",
+  background: "#5568FF",
+  mixBlendMode: "screen",
+  opacity: "0.35",
+  filter: "blur(210px)",
+  width: "858px",
+  height: "858px",
+  top: "1200px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  zIndex: 4,
+}));
+
+const Content = styled("div")(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   textAlign: "center",
   alignItems: "center",
   marginTop: "160px",
+  position: "relative",
+  zIndex: 10,
 
   [theme.breakpoints.down(769)]: {
     marginTop: "140px",
@@ -70,6 +119,11 @@ const TextWithButton = styled("div")(({ theme }) => ({
   gap: "16px",
   margin: "16px 0",
 
+  button: {
+    background: "linear-gradient(214.76deg, #3360FF 20.48%, #002AC0 88.06%)",
+    borderRadius: "10px",
+  },
+
   [theme.breakpoints.down(769)]: {
     margin: "8px 0",
     gap: "8px",
@@ -83,7 +137,6 @@ const TextWithButton = styled("div")(({ theme }) => ({
     button: {
       width: "24px",
       height: "24px",
-      borderRadius: "4px",
 
       svg: {
         width: "8px",

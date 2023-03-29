@@ -60,7 +60,9 @@ const Wrapper = styled("div")(({ theme }) => ({
   alignItems: "stretch",
   justifyContent: "space-between",
   padding: "52px 0",
-  border: "1px solid rgba(120, 157, 255, 0.15)",
+  borderTop: "1px solid rgba(120, 157, 255, 0.15)",
+  position: "relative",
+  zIndex: 10,
 
   [theme.breakpoints.down("sm")]: {
     flexDirection: "column",

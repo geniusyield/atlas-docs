@@ -27,6 +27,8 @@ const Wrapper = styled("div")(({ theme }) => ({
   alignItems: "center",
   gap: "15px",
   marginTop: "200px",
+  position: "relative",
+  zIndex: 10,
 
   [theme.breakpoints.down(769)]: {
     marginTop: "150px",

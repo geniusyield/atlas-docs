@@ -91,8 +91,8 @@ const Wrapper = styled("div")(({ theme }) => ({
   width: "100%",
   maxWidth: "436px",
   position: "absolute",
-  bottom: 0,
-  right: "68px",
+  bottom: '-70px',
+  right: "0",
   padding: "26px 37px 26px 42px",
   filter: "drop-shadow(0px -3.8527px 15.4108px rgba(0, 0, 0, 0.1))",
   background: "linear-gradient(112.29deg, #1833F5 2.34%, #0094FF 84.24%)",
@@ -106,8 +106,9 @@ const Wrapper = styled("div")(({ theme }) => ({
 
   [theme.breakpoints.down(992)]: {
     maxWidth: "335px",
-    right: "47px",
-  },
+    right: "0",
+    bottom: '-40px',
+},
 
   [theme.breakpoints.down(801)]: {
     maxWidth: "246px",
@@ -117,6 +118,7 @@ const Wrapper = styled("div")(({ theme }) => ({
     maxWidth: "90%",
     right: "50%",
     transform: "translateX(50%)",
+    bottom: '0',
   },
 }));
 

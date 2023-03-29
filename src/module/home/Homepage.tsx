@@ -15,10 +15,12 @@ const Homepage = () => {
       {/* <Navigation /> */}
       <TitleSection />
       <FeaturesSection />
-      <AboutSection />
-      <DevelopedBySection />
-      <PartnersSection />
-      <Footer />
+      <HighlihtedSections>
+        <AboutSection />
+        <DevelopedBySection />
+        <PartnersSection />
+        <Footer />
+      </HighlihtedSections>
     </Wrapper>
   );
 };
@@ -27,6 +29,11 @@ const Wrapper = styled("div")({
   width: "100%",
   minHeight: "100vh",
   background: "black",
+});
+
+const HighlihtedSections = styled("div")({
+  position: "relative",
+  overflow: "hidden",
 });
 
 export default Homepage;

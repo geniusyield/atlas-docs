@@ -4,7 +4,7 @@ import IconButton from "../Button/IconButton";
 import { ArrowIcon } from "../Icons/ArrowIcon";
 
 const Pagination = () => {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(16);
 
   const handleAddCount = () => setCount((count) => count + 1);
 
