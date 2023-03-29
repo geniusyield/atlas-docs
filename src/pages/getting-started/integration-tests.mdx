@@ -1,0 +1,271 @@
+import { Callout } from 'nextra-theme-docs'
+
+# Integration Tests
+
+We already saw how we can conveniently write tests for our smart contract using our wrapper upon Plutus simple model. But these tests were running against a mock ledger, i.e., we really were just simulating it by having some mock data-structures (say set of UTxOs) which were getting updated on submission of successful transaction. We could however write tests to test against the real node and have it slightly more convenient to program against by spinning up our own private network (_privnet_ for short). Here is the table which outlines the differences between the two approaches:
+
+
+| **Tests using PSM Wrapper**                                        | **Tests using Private Network**                                               |
+|--------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| Runs against mock ledger                                           | Runs against real node                                                        |
+| Each unit test gets fresh set of wallets (having original balance) | Each subsequent unit test continues upon the effects caused by previous ones |
+| Fast, purer & convenient                                                     | Slow as each slot is 0.1 second                                              |
+
+Thus these tests are suitable for integration testing.
+
+## Spinning up private network
+
+Our private network is adapted from WoofPool's [`cardano-private-testnet-setup`](https://github.com/woofpool/cardano-private-testnet-setup) repository.
+
+To spin up it up:
+
+1. Clone [this](https://github.com/geniusyield/cardano-private-testnet-setup) repository. Make sure to not clone it in some deep nested path as then the path length towards the generated socket file (`node.sock`) may exceed 108 characters[^5].
+2. Enter it & checkout `geniusyield` branch.
+3. Enter the following in terminal: `./scripts/automate.sh` (you would need to have `cardano-node` & `cardano-cli` available in your `PATH`).
+
+Once it says, "_Congrats! Your network is ready for use!_" you can attempt to run the tests (in another terminal).
+
+First, let's say the path to `private-testnet-simple` is `X`, then being inside your example project folder, you can execute the tests by running `GENIUSYIELD_PRIVNET_DIR=$X/private-testnet cabal run betref-privnet-tests -- -j1`
+
+The `-j1` is needed so that the tests run sequentially.
+
+<Callout type="info">
+Remember to stop (`CTRL-C`, and `killall cardano-node`) the private testnet, or it will eventually eat all of your disk space.
+</Callout>
+
+The way we have it setup for our test boilerplate is that we have three users where second and third user have the following balances:
+
+* 5 UTxOs each containing thousand ada
+* 1 million each of gold & iron tokens
+
+"User 1" UTxOs list isn't that clean but does include 5 UTxOs each containing roughly thousand ada plus some other UTxOs containing a lot more ada. Also User 1 has 3 million each of gold & iron tokens.
+
+We'll see how to create a new user soon.
+
+<Callout type="warning">
+  Unless you kill & restart the private network, running your privnet tests again, would have them run in the modified network state. So in general, if you wish to reexecute the command mentioned before, viz. `ATLAS_PRIVNET_DIR=$(pwd)/private-testnet-simple/private-testnet cabal run privnet-tests -- -j1`, you should first restart the privnet[^1].
+</Callout>
+
+## Understanding our first test
+
+<Callout type="warning" emoji="📃">
+The tests are written in [this](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/tests-privnet/BetRef/Tests/Privnet/Tests.hs) file and are being called [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/tests-privnet/betref-privnet-tests.hs).
+</Callout>
+
+Here is the code (& explaination follows after it):
+
+```haskell
+  testCaseSteps "Balance checks & taking pot by closest guesser should pass" $ \info -> withSetup setup info $ \ctx -> do
+
+    -- First step: Construct the parameters and obtain validator from it.
+    --
+    -- Let's define a new User to represent Oracle (not necessary though)
+    oracleUser <- newTempUserCtx ctx User1 (valueFromLovelace 20_000_000)
+    (currentSlot, slotConfig) <- getSlotAndConfig ctx
+    let betUntilSlotDelta = 100
+        betRevealSlotDelta = 200
+        betUntilTime = slotToBeginTimePure slotConfig (unsafeAdvanceSlot currentSlot betUntilSlotDelta)
+        betRevealTime = slotToBeginTimePure slotConfig (unsafeAdvanceSlot currentSlot betRevealSlotDelta)
+        brp = BetRefParams (pubKeyHashToPlutus $ userPkh oracleUser) (timeToPlutus betUntilTime) (timeToPlutus betRevealTime) (valueToPlutus $ valueFromLovelace 10_000_000)
+        validator = betRefValidator' brp
+    validatorAddress <- ctxRunC ctx User1 $ betRefAddress brp
+    -- Second step: Putting reference script for validator.
+    refScript <- addRefScriptCtx ctx User1 (validatorToScript validator)
+    threadDelay 1_000_000
+    -- Third step: Put some bets.
+    --
+    -- 1st bet.
+    txBodyLock <- ctxRunI ctx User1 $ placeBet refScript brp (OracleAnswerDatum 1) (valueFromLovelace 10_000_000) (ctxUserAddr ctx User1) Nothing
+    lockedORef <- findOutput validatorAddress txBodyLock
+    void $ submitTx ctx User1 txBodyLock
+    threadDelay 1_000_000
+
+    --
+    -- 2nd bet.
+    txBodyLock <- ctxRunI ctx User2 $ placeBet refScript brp (OracleAnswerDatum 2) (valueFromLovelace 20_000_000) (ctxUserAddr ctx User2) (Just lockedORef)
+    lockedORef <- findOutput validatorAddress txBodyLock
+    void $ submitTx ctx User2 txBodyLock
+    threadDelay 1_000_000
+    --
+    -- 3rd bet.
+    txBodyLock <- ctxRunI ctx User1 $ placeBet refScript brp (OracleAnswerDatum 3) (valueFromLovelace 35_000_000) (ctxUserAddr ctx User1) (Just lockedORef)
+    lockedORef <- findOutput validatorAddress txBodyLock
+    void $ submitTx ctx User1 txBodyLock
+    threadDelay 1_000_000
+
+    -- Fourth step, get the bets pot.
+    --
+    -- Let's first wait for the required amount
+    ctxWaitUntilSlot ctx (unsafeAdvanceSlot currentSlot betRevealSlotDelta)  -- here this `currentSlot` is what we obtained sometime ago, the actual current slot has certainly increased a lot by now.
+    --
+    -- Let's then add for the reference input
+    refInputORef <- addRefInputCtx ctx User1 True (userAddr oracleUser) (datumFromPlutusData (OracleAnswerDatum 2))
+    threadDelay 1_000_000
+    --
+    -- Balance of `User2` before unlocking
+    balance <- ctxQueryBalance ctx User2
+    --
+    -- Unlock operation
+    txBodyUnlock <- ctxRunI ctx User2 $ takeBets refScript brp lockedORef (ctxUserAddr ctx User2) refInputORef
+    void $ submitTx ctx User2 txBodyUnlock
+    threadDelay 1_000_000
+    --
+    -- Balance of `User2` after unlocking
+    balance' <- ctxQueryBalance ctx User2
+    let diff = valueMinus balance' balance
+        adaChange = fst $ valueSplitAda diff  -- should be withing [65 ada - max-fee, 65 ada)
+        adaExpectedIncrease = 65_000_000
+        maxFee = 1_000_000
+    assertBool "User2 ada increase must be b/w [adaExpectedIncrease - maxFee, adaExpectedIncrease)"
+         $ adaExpectedIncrease - maxFee <= adaChange && adaChange < adaExpectedIncrease
+```
+
+The first line `testCaseSteps "test description" $ \info -> withSetup setup info $ \ctx -> do` can be seen as a boilerplate for all of your tests.
+
+`ctx` denotes the so called context (of type `Ctx`) and contains information about our users, additional tokens, etc. It is defined in [`Ctx.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Test/Privnet/Ctx.hs) file and it is essential to go over that file if you intend to write these tests.
+
+Variable `info` is used to log messages and you can use it in your test's `do` block like `info $ printf "Hello from %s" "Atlas"`
+
+We next see the use of `newTempUserCtx` utility function. As mentioned before, we already have three users in our context, where they have the type `User`:
+
+```haskell
+data User = User
+    { userSKey :: !GYPaymentSigningKey
+    , userAddr :: !GYAddress
+    , userColl :: !GYTxOutRef
+    }
+```
+
+<Callout type="warning" emoji="">
+We also have a type `UserIdx` defined for these three users:
+
+```haskell
+data UserIdx
+    = User1
+    | User2
+    | User3
+```
+</Callout>
+
+But at rare times, we might need to create a new user. Such a user would not be part of the context and thus would be local to the test creating it[^2].
+
+We can do that with the help of `newTempUserCtx` function. It accepts the context parameter, the index for the user which will fund this new user and the value to be given to this new user. Note that internally it will create two UTxOs for this new user, where one would be for collateral and will take 5 ada from the given value.
+
+Next we see the use of `getSlotAndConfig` function. Earlier when we wrote for PSM tests, we could work in absolute slots as we were always running each test from the beginning of ledger but this is not the case here. Thus, we would need to work with relative slots, i.e., we find the current slot and then add offset with respect to it. Function `getSlotAndConfig` has the folowing definition:
+
+```haskell
+getSlotAndConfig :: Ctx -> IO (GYSlot, GYSlotConfig)
+getSlotAndConfig ctx = do
+  slot <- ctxCurrentSlot ctx
+  sc   <- ctxSlotConfig ctx
+  return (slot, sc)
+```
+
+Next we compute for our contract parameters and since we already obtained the slot config, we can use `slotToBeginTimePure` instead of `slotToBeginTime`.
+
+We next see the use of `ctxRunC`. To understand it, we need to first look at signature of `ctxRunF`.
+
+```haskell
+ctxRunF :: forall t v. Traversable t => Ctx -> UserIdx -> ReaderT GYCompiledScripts GYTxMonadNode (t (GYTxSkeleton v)) -> IO (t GYTxBody)
+```
+
+We see that it has a type variable `t` which should have an instance of `Traversable`. The other two functions, namely `ctxRunC` & `ctxRunI` call this `ctxRunF` function with suitable instantiation of type variable `t`.
+
+Here is the table which explains about these three (`ctxRunF`, `ctxRunC` & `ctxRunI`) related functions:
+
+| Function  | When to use?                                                                                                  | What does it do?                                                                                                                                                                               |
+|-----------|---------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ctxRunI` | When you want to build for single `GYTxSkeleton`                                                              | It wraps our skeleton under `Identity`[^3], that is what suffix `I` stands for                                                                                        |
+| `ctxRunF` | When you have say multiple skeletons, like `[GYTxSkeleton]`, or `Maybe GYTxSkeleton`                          | -                                                                                                                                                                                              |
+| `ctxRunC` | When you don't want to build skeletons. This is in particular useful for operations like `utxosAtAddress` | The type constructor `Const` is defined as `newtype Const a b = Const { getConst :: a }` and therefore type parameter `b` is phantom and thus this function helps us ignore for `GYTxSkeleton` |
+
+We next add for reference script using helper utility function `addRefScriptCtx`.
+
+We then start placing our bets, once we have the transaction body, we use `findOutput` function which gives us the reference to the UTxO (the first one it finds[^4]) that is being locked at the script address. We use `threadDelay 1_000_000` to wait for one second so that our transaction is added to the blockchain.
+
+After placing our bets, we use `ctxWaitUntilSlot` to wait till the unlock slot.
+
+We next add for our reference input using `addRefInputCtx` helper utility function.
+
+Now before performing the unlock operation, we query the balance of unlocker so that we can compare with it later using `ctxQueryBalance` function.
+
+Next we perform the unlock operation (calling our `takeBets` operation).
+
+Lastly, we verify that the unlocker was able to take all the bets by comparing the balance.
+
+<Callout>
+There exists a helper function in [`Asserts.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Test/Privnet/Asserts.hs) for what we did in the last step, i.e., to see that our expected value matches the actual considering fees, here is its definition:
+
+```haskell
+{- Asserts if the user funds change as expected.
+   The `fees` argument is an estimation for the transaction fees.
+-}
+assertUserFunds :: Integer -> Ctx -> UserIdx -> GYValue -> IO ()
+assertUserFunds fees ctx uid expectedValue = do
+    currentValue <- ctxQueryBalance ctx uid
+    let (cLovelace, cAssets) = valueSplitAda currentValue
+        (eLovelace, eAssets) = valueSplitAda expectedValue
+    assertBool (unwords ["The non-Ada token didn't change as expected",
+                         "\nExpected: ", show eAssets,
+                         "\nCurrent: ", show cAssets])
+               (cAssets == eAssets)
+    assertBool (unwords ["The lovelaces didn't change as expected,",
+                         "\nExpected: ", show eLovelace,
+                         "\nCurrent: ", show cLovelace])
+               ((cLovelace + fees >= eLovelace) &&
+                (cLovelace < eLovelace))
+```
+</Callout>
+
+## Writing a failing test
+
+Now let's see another test where we slightly modify the last step (all the rest is same) and this time we instead try to take funds by not the closest guesser.
+
+```haskell
+  -- Fourth step, get the bets pot.
+  --
+  -- Let's first wait for the required amount
+  ctxWaitUntilSlot ctx (unsafeAdvanceSlot currentSlot betRevealSlotDelta)  -- here this `currentSlot` is what we obtained sometime ago, the actual current slot has certainly increased a lot by now.
+  --
+  -- Let's then add for the reference input
+  refInputORef <- addRefInputCtx ctx User1 True (userAddr oracleUser) (datumFromPlutusData (OracleAnswerDatum 2))
+  threadDelay 1_000_000
+  --
+  -- Unlock operation
+  -- But this time by wrong guesser
+  assertThrown isTxBodyErrorAutoBalance $ ctxRunI ctx User1 $ takeBets refScript brp lockedORef (ctxUserAddr ctx User1) refInputORef
+```
+
+Notice that we try catching the error using `assertThrown` function. Here `isTxBodyErrorAutoBalance` is defined as (both this & `assertThrown` have their definitions in [`Asserts.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Test/Privnet/Asserts.hs) file):
+
+```haskell
+isTxBodyErrorAutoBalance :: BuildTxException -> Bool
+isTxBodyErrorAutoBalance (BuildTxBodyErrorAutoBalance _) = True
+isTxBodyErrorAutoBalance _                               = False
+```
+
+Thus our `assertThrown` function checks for two things:
+
+1. Whether our action indeed raises an exception.
+2. If an exception is raised, does it saitsfy our predicate? For instance, here our predicate was `isTxBodyErrorAutoBalance`.
+
+<Callout>
+You can also catch for `IO` error like:
+
+```haskell
+  errored <- catchIOError (submitTx ctx User1 txBody >> pure False) (\_ -> pure True)
+  unless errored $ assertFailure "Expecting an IOError exception"
+```
+</Callout>
+
+With this we conclude upon writing integration tests.
+
+[^1]: For convenience, you can write a bash script which combines setup, running tests & closing the privnet all into one simple script.
+
+[^2]: Even though this user is local to the test which created it, it would still persist in our private network.
+
+[^3]: Technically, it's not wrapper that is happening place here but rather we coerce with `Identity` newtype.
+
+[^4]: Therefore this function is intended to be used when we create only a single output for an external address.
+
+[^5]: https://unix.stackexchange.com/q/367008
