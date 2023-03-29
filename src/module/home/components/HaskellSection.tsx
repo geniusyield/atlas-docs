@@ -96,7 +96,7 @@ const HaskellSection: FC = () => {
   );
 };
 
-const HaskellSectionContainer = styled(Grid)(({ theme }) => ({
+const HaskellSectionContainer = styled(Grid)(({}) => ({
   background: "black",
   position: "relative",
   backgroundSize: "100% 100%",
@@ -147,15 +147,15 @@ const SectionContainer = styled(Grid)(({ theme }) => ({
 
   [theme.breakpoints.down(776)]: {
     flexDirection: "column",
-    padding: "100px 70px 0 100px",
+    padding: "100px -1px 0 100px",
   },
 
   [theme.breakpoints.down(576)]: {
-    padding: "75px 55px 0 55px",
+    padding: "75px -1px 0 55px",
   },
 
   [theme.breakpoints.down(450)]: {
-    padding: "75px 40px 0 40px",
+    padding: "75px -1px 0 40px",
   },
 }));
 

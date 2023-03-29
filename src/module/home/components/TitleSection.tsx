@@ -5,6 +5,9 @@ import { Button, Grid, styled, Typography } from "@mui/material";
 const TitleSection: FC = () => {
   return (
     <TitleSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
+      <img className="purpleTopShadow" alt="purpleTopShadow" src={"/images/titleSection/PurpleTopShadow.png"} />
+      <img className="blueTopShadow" alt="blueTopShadow" src={"/images/titleSection/BlueTopShadow.png"} />
+
       <img
         className="atlasHoldingGalaxy"
         alt="atlasHoldingGalaxy"
@@ -80,6 +83,18 @@ const TitleSectionContainer = styled(Grid)(({ theme }) => ({
   backgroundPosition: "0px 0px,0px 0px,0px 0px,0px 0px,0px 0px",
   background: "black",
   overflow: "hidden",
+
+  "& > .purpleTopShadow": {
+    position: "absolute",
+    top: "0px",
+    left: "0px",
+  },
+
+  "& > .blueTopShadow": {
+    position: "absolute",
+    top: "0px",
+    right: "0px",
+  },
 
   "& > .atlasHoldingGalaxy": {
     position: "absolute",
@@ -201,7 +216,7 @@ const TitleContainer = styled(Grid)(({ theme }) => ({
   },
 }));
 
-const Subtitle = styled(Typography)(({ theme }) => ({
+const Subtitle = styled(Typography)(({}) => ({
   background:
     "radial-gradient(63.67% 100% at 50% 100%, #073bf44f 0%, #0d41f600 100%), linear-gradient(180deg, #ffffff8a 0%, #FFFFFF 100%)",
   WebkitBackgroundClip: "text",

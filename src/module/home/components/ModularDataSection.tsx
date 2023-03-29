@@ -2,8 +2,13 @@
 import { FC, ReactElement } from "react";
 import { Grid, styled, Typography } from "@mui/material";
 
-const Provider: FC<{ content: string; image: ReactElement }> = ({ content, image }) => (
-  <Grid
+interface ProviderProps {
+  content: string;
+  image: ReactElement;
+}
+
+const Provider: FC<ProviderProps> = ({ content, image }) => (
+  <ProviderContainer
     container
     display="flex"
     flexDirection="column"
@@ -22,8 +27,14 @@ const Provider: FC<{ content: string; image: ReactElement }> = ({ content, image
     <Typography textAlign="center" className="title6" variant="title6" marginTop="15px">
       {content}
     </Typography>
-  </Grid>
+  </ProviderContainer>
 );
+
+const ProviderContainer = styled(Grid)(({ theme }) => ({
+  [theme.breakpoints.down(992)]: {
+    height: "200px",
+  },
+}));
 
 const CheckMarkWrapper = styled(Grid)(({ theme }) => ({
   width: "100%",
@@ -98,6 +109,12 @@ const ModularDataSectionContainer = styled(Grid)(({ theme }) => ({
     "& .text1": {
       fontSize: "14px",
       lineHeight: "16px",
+    },
+  },
+
+  [theme.breakpoints.down(576)]: {
+    "& .text1": {
+      width: "60%",
     },
   },
 }));
@@ -183,10 +200,10 @@ const ProvidersContainer = styled(Grid)(({ theme }) => ({
   [theme.breakpoints.down(560)]: {
     flexDirection: "column",
     alignItems: "center",
-    padding: "50px 20px",
+    padding: "50px 0px",
 
     "& > .MuiGrid-container:last-of-type": {
-      marginLeft: "-40px",
+      marginLeft: "-50px",
     },
   },
 }));

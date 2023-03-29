@@ -3,6 +3,7 @@ import { Grid } from "@mui/material";
 import HaskellSection from "../module/home/components/HaskellSection";
 import TitleSection from "../module/home/components/TitleSection";
 import ModularDataSection from "../module/home/components/ModularDataSection";
+import DescriptionSection from "../module/home/components/DescriptionSection";
 
 const Home = ({ setActiveMode }: any) => {
   return (
@@ -10,6 +11,7 @@ const Home = ({ setActiveMode }: any) => {
       <TitleSection />
       <HaskellSection />
       <ModularDataSection />
+      <DescriptionSection />
     </Grid>
   );
 };
