@@ -14,7 +14,7 @@ const TitleSection: FC = () => {
         src={"/images/titleSection/AtlasHoldingGalaxy.png"}
       />
 
-      <TitleContainer container display="flex" marginTop="250px" flexDirection="column">
+      <TitleContainer container display="flex" marginTop="191px" flexDirection="column">
         <Typography className="title1" variant="title1" textAlign="center">
           Making dApps easy
         </Typography>
