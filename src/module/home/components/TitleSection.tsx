@@ -27,7 +27,7 @@ const TitleSection: FC = () => {
 
         <TitleButton variant="contained">
           <Typography className="title8" variant="title8">
-            Get Started{" "}
+            Get Started
             <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
             <img
               className="doubleArrowsShadow"
@@ -227,7 +227,7 @@ const TitleButton = styled(Button)(({ theme }) => ({
   width: "204px",
   height: "68px",
   margin: "40px auto 0",
-  background: theme.palette.accent.blueLinearGradient,
+  background: `${theme.palette.accent.blueLinearGradient} !important`,
   borderRadius: theme.borderRadius.sm,
   border: `1px solid ${theme.palette.accent.grey01Transparency}`,
   boxShadow: `inset 0px 1px 0px ${theme.palette.accent.grey02Transparency}`,

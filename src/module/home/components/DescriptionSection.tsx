@@ -16,7 +16,7 @@ const TextWithIcon: FC<TextWithIconProps> = ({ title, subtitle, image }) => (
       <Typography className="title4" variant="title4">
         {title}
       </Typography>
-      <Typography className="text1" variant="text1">
+      <Typography className="text1" variant="text1" maxWidth="430px">
         {subtitle}
       </Typography>
     </Grid>
@@ -54,7 +54,14 @@ const DescriptionSection: FC = () => (
     alignItems="center"
     padding="0px 90px 30px"
     gap="30px">
-    <FirstColumn container display="flex" flexDirection="row" maxWidth="1120px" padding="50px" overflow="hidden">
+    <FirstColumn
+      container
+      display="flex"
+      flexDirection="row"
+      maxWidth="1464px"
+      width="90%"
+      padding="50px"
+      overflow="hidden">
       <TextWithIcon
         title="Always up to date"
         subtitle="Benefit from Cardano's latest innovations such as Reference Inputs, Inline Datum and Reference Scripts."
@@ -69,7 +76,8 @@ const DescriptionSection: FC = () => (
       display="flex"
       flexDirection="row"
       justifyContent="space-between"
-      maxWidth="1120px"
+      maxWidth="1464px"
+      width="90%"
       gap="30px">
       <LeftRow container flexDirection="column" padding="0 50px" width="48%" overflow="hidden">
         <img className="blueTopShadow" alt="blueTopShadow" src={"/images/descriptionSection/BlueTopShadow.png"} />
@@ -174,6 +182,8 @@ const LeftRow = styled(Grid)(({ theme }) => ({
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -350px)",
+    maxWidth: "700px",
+    width: "100%",
   },
 
   [theme.breakpoints.down(992)]: {
@@ -212,6 +222,8 @@ const RightRow = styled(Grid)(({ theme }) => ({
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -350px)",
+    maxWidth: "700px",
+    width: "100%",
   },
 
   [theme.breakpoints.down(992)]: {

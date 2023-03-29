@@ -31,6 +31,7 @@ const StarsWrapper = styled(Grid)(({ theme }) => ({
   "& .shootingStarRight": {
     position: "absolute",
     right: "15px",
+    top: "0px",
     transform: "rotate(90deg)",
   },
 
@@ -60,8 +61,14 @@ const HaskellSection: FC = () => {
       <img className="blueLightBg2" alt="blueLightBg2" src={"/images/haskellSection/BlueLightBg2.png"} />
       <img className="pattern" alt="pattern" src={"/images/haskellSection/Pattern.png"} />
 
-      <SectionContainer container display="flex" maxWidth="1220px" padding="100px 90px" flexDirection="row">
-        <LeftContainer container display="flex" flexDirection="row" justifyContent="flex-start" width="60%">
+      <SectionContainer
+        container
+        display="flex"
+        maxWidth="1220px"
+        padding="100px 90px"
+        flexDirection="row"
+        alignItems="flex-start">
+        <LeftContainer container display="flex" flexDirection="row" justifyContent="flex-start" width="60%" gap="30px">
           <img
             className="firstClassHaskell"
             alt="firstClassHaskell"
@@ -80,8 +87,6 @@ const HaskellSection: FC = () => {
             <Bullet content={secondBulletContent}></Bullet>
             <Bullet content={thirdBulletContent}></Bullet>
           </BulletsContainer>
-
-          <img className="codeMobile" alt="codeMobile" src={"/images/haskellSection/CodeMobile.png"}></img>
         </LeftContainer>
 
         <RightContainer container width="40%">
@@ -160,6 +165,11 @@ const SectionContainer = styled(Grid)(({ theme }) => ({
 }));
 
 const LeftContainer = styled(Grid)(({ theme }) => ({
+  "& > img": {
+    maxWidth: "68px",
+    maxHeight: "69px",
+  },
+
   [theme.breakpoints.down(992)]: {
     height: "fit-content",
     gap: "30px",
@@ -204,6 +214,11 @@ const RightContainer = styled(Grid)(({ theme }) => ({
   position: "relative",
   top: "-55px",
   left: "-70px",
+
+  "& > img": {
+    width: "45vw",
+    maxWidth: "650px !important",
+  },
 
   [theme.breakpoints.down(992)]: {
     left: "-105px",
