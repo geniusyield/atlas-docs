@@ -64,8 +64,6 @@ const TitleSection: FC = () => (
               UTxOs, and interfacing with Plutus smart contracts.
             </Typography>
           </Grid>
-
-          <img className="codeMobile" alt="codeMobile" src={"/images/titleSection/CodeMobile.png"}></img>
         </BrowserText>
       </BrowserContainer>
     </ContainerWrapper>
@@ -181,11 +179,14 @@ const ContainerWrapper = styled(Grid)(({ theme }) => ({
 }));
 
 const TitleContainer = styled(Grid)(({ theme }) => ({
-  zIndex: "2",
+  "& .title1": {
+    zIndex: "2",
+  },
 
   "& .title5": {
     width: "480px",
     margin: "0 auto",
+    zIndex: "2",
   },
 
   [theme.breakpoints.down(992)]: {
@@ -260,10 +261,6 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     display: "none",
   },
 
-  "& .codeMobile": {
-    display: "none",
-  },
-
   "& > .browserSection": {
     position: "absolute",
     left: "50%",
@@ -278,7 +275,7 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     zIndex: "3",
     position: "absolute",
     left: "50%",
-    top: "100px",
+    top: "110px",
     transform: "translate(-50%, -50%)",
   },
 
@@ -340,7 +337,7 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
 
     "& .browserSection": {
       top: "10vw",
-      left: "30px",
+      left: "20px",
       width: "1000px",
       margin: "0",
       transform: "none",
@@ -357,27 +354,9 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     },
   },
 
-  [theme.breakpoints.down(560)]: {
-    "& .codeMobile": {
-      display: "inline-block",
-    },
-  },
-
-  [theme.breakpoints.down(450)]: {
+  [theme.breakpoints.down(400)]: {
     "& .browserSection": {
-      left: "17vw",
-    },
-  },
-
-  [theme.breakpoints.down(420)]: {
-    "& .browserSection": {
-      left: "22vw",
-    },
-  },
-
-  [theme.breakpoints.down(380)]: {
-    "& .browserSection": {
-      left: "32vw",
+      left: "30px",
     },
   },
 
@@ -385,15 +364,11 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     "& .browserSectionMobile": {
       display: "inline-block",
       position: "absolute",
-      left: "29vw",
+      left: "60px",
       top: "1vw",
     },
 
     "& .browserSection": {
-      display: "none",
-    },
-
-    "& .codeMobile": {
       display: "none",
     },
 
@@ -448,19 +423,11 @@ const BrowserText = styled(Grid)(({ theme }) => ({
   },
 
   [theme.breakpoints.down(450)]: {
-    paddingLeft: "9vw",
-  },
-
-  [theme.breakpoints.down(450)]: {
-    paddingLeft: "15vw",
-  },
-
-  [theme.breakpoints.down(380)]: {
-    paddingLeft: "24vw",
+    paddingLeft: "0px",
   },
 
   [theme.breakpoints.down(360)]: {
-    paddingLeft: "16vw",
+    paddingLeft: "20px",
     paddingBottom: "360px",
   },
 
