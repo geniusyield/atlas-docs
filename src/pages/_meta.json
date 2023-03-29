@@ -1,4 +1,11 @@
 {
-  "index": "Introduction",
-  "getting-started": "Getting Started"
+  "getting-started": "Getting Started",
+  "index": {
+    "title": "Aiken",
+    "type": "page",
+    "display": "hidden",
+    "theme": {
+      "layout": "raw"
+    }
+  }
 }
