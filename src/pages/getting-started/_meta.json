@@ -1,0 +1,8 @@
+{
+  "smart-contract-intro": "Smart Contract",
+  "operations": "Operations over Contract",
+  "unit-tests": "Unit Tests",
+  "integration-tests": "Integration Tests",
+  "endpoints": "Creating Endpoints",
+  "browser-integration": "Browser Integration"
+}
