@@ -17,15 +17,10 @@ const Wrapper = styled("div")(({ theme }) => ({
   width: "1464px",
   maxWidth: "90%",
   margin: "0 auto",
-  zIndex: 9999,
 
   [theme.breakpoints.down("xl")]: {
     width: "1220px",
   },
-
-  // [theme.breakpoints.down("lg")]: {
-  //   width: "1000px",
-  // },
 }));
 
 export default Container;
