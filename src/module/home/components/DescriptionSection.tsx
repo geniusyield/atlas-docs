@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { FC, ReactElement } from "react";
 import { Grid, styled, Typography } from "@mui/material";
+import Container from "src/components/Container/Container";
 
 interface TextWithIconProps {
   title: string;
@@ -45,89 +46,77 @@ const TextContainer = styled(Grid)(({ theme }) => ({
 }));
 
 const DescriptionSection: FC = () => (
-  <DescriptionSectionContainer
-    container
-    width="100%"
-    flex="true"
-    flexDirection="column"
-    overflow="hidden"
-    alignItems="center"
-    padding="0px 90px 30px"
-    gap="30px">
-    <FirstColumn
-      container
-      display="flex"
-      flexDirection="row"
-      maxWidth="1464px"
-      width="90%"
-      padding="50px"
-      overflow="hidden">
-      <TextWithIcon
-        title="Always up to date"
-        subtitle="Benefit from Cardano's latest innovations such as Reference Inputs, Inline Datum and Reference Scripts."
-        image={<img className="blueLogo" alt="alwaysUpToDate" src={"/images/descriptionSection/AlwaysUpToDate.png"} />}
-      />
-
-      <img className="code" alt="code" src={"/images/descriptionSection/Code.png"} />
-    </FirstColumn>
-
-    <SecondColumn
-      container
-      display="flex"
-      flexDirection="row"
-      justifyContent="space-between"
-      maxWidth="1464px"
-      width="90%"
-      gap="30px">
-      <LeftRow container flexDirection="column" padding="0 50px" width="48%" overflow="hidden">
-        <img className="blueTopShadow" alt="blueTopShadow" src={"/images/descriptionSection/BlueTopShadow.png"} />
-
-        <IllustrationWrapper>
-          <img
-            className="integrationTestsIllustration"
-            alt="integrationTestsIllustration"
-            src={"/images/descriptionSection/IntegrationTestsIllustration.png"}
-          />
-        </IllustrationWrapper>
-
+  <Container>
+    <DescriptionSectionContainer container width="100%" flex="true" flexDirection="column" overflow="hidden" gap="30px">
+      <FirstColumn container display="flex" flexDirection="row" maxWidth="1464px" padding="50px" overflow="hidden">
         <TextWithIcon
-          title="Unit tests"
-          subtitle="Write realistic tests true to onchain behavior with Atlas' test harness framework based on Plutus Simple Model."
+          title="Always up to date"
+          subtitle="Benefit from Cardano's latest innovations such as Reference Inputs, Inline Datum and Reference Scripts."
           image={
-            <img className="blueLogo" alt="integrationTests" src={"/images/descriptionSection/IntegrationTests.png"} />
+            <img className="blueLogo" alt="alwaysUpToDate" src={"/images/descriptionSection/AlwaysUpToDate.png"} />
           }
         />
-      </LeftRow>
 
-      <RightRow container flexDirection="column" padding="0 50px" width="48%" overflow="hidden">
-        <img className="pinkTopShadow" alt="pinkTopShadow" src={"/images/descriptionSection/PinkTopShadow.png"} />
+        <img className="code" alt="code" src={"/images/descriptionSection/Code.png"} />
+      </FirstColumn>
 
-        <IllustrationWrapper>
-          <img
-            className="unitTestsIllustration"
-            alt="unitTestsIllustration"
-            src={"/images/descriptionSection/UnitTestsIllustration.png"}
+      <SecondColumn
+        container
+        display="flex"
+        flexDirection="row"
+        justifyContent="space-between"
+        maxWidth="1464px"
+        gap="30px">
+        <LeftRow container flexDirection="column" padding="0 50px" width="48%" overflow="hidden">
+          <img className="blueTopShadow" alt="blueTopShadow" src={"/images/descriptionSection/BlueTopShadow.png"} />
+
+          <IllustrationWrapper>
+            <img
+              className="integrationTestsIllustration"
+              alt="integrationTestsIllustration"
+              src={"/images/descriptionSection/IntegrationTestsIllustration.png"}
+            />
+          </IllustrationWrapper>
+
+          <TextWithIcon
+            title="Unit tests"
+            subtitle="Write realistic tests true to onchain behavior with Atlas' test harness framework based on Plutus Simple Model."
+            image={
+              <img
+                className="blueLogo"
+                alt="integrationTests"
+                src={"/images/descriptionSection/IntegrationTests.png"}
+              />
+            }
           />
-        </IllustrationWrapper>
+        </LeftRow>
 
-        <TextWithIcon
-          title="Integration tests"
-          subtitle="Execute integration tests on a real private node in a simulated environment."
-          image={<img className="blueLogo" alt="unitTests" src={"/images/descriptionSection/UnitTests.png"} />}
-        />
-      </RightRow>
-    </SecondColumn>
-  </DescriptionSectionContainer>
+        <RightRow container flexDirection="column" padding="0 50px" width="48%" overflow="hidden">
+          <img className="pinkTopShadow" alt="pinkTopShadow" src={"/images/descriptionSection/PinkTopShadow.png"} />
+
+          <IllustrationWrapper>
+            <img
+              className="unitTestsIllustration"
+              alt="unitTestsIllustration"
+              src={"/images/descriptionSection/UnitTestsIllustration.png"}
+            />
+          </IllustrationWrapper>
+
+          <TextWithIcon
+            title="Integration tests"
+            subtitle="Execute integration tests on a real private node in a simulated environment."
+            image={<img className="blueLogo" alt="unitTests" src={"/images/descriptionSection/UnitTests.png"} />}
+          />
+        </RightRow>
+      </SecondColumn>
+    </DescriptionSectionContainer>
+  </Container>
 );
 
 const DescriptionSectionContainer = styled(Grid)(({ theme }) => ({
   background: "black",
   position: "relative",
   backgroundSize: "100% 100%",
-
-  [theme.breakpoints.down(776)]: {
-    padding: "0px 50px 30px",
-  },
 }));
 
 const FirstColumn = styled(Grid)(({ theme }) => ({
