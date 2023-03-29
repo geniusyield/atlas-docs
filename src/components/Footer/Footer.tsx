@@ -31,7 +31,7 @@ const Footer = () => (
             Atlas is Licensed under{" "}
             <a
               style={{ textDecoration: "underline" }}
-              href="https://github.com/geniusyield/atlas-docs/blob/main/LICENSE"
+              href="https://github.com/geniusyield/atlas/blob/main/LICENSE"
               target="_blank">
               Apache 2.0
             </a>
