@@ -54,6 +54,10 @@ const config: DocsThemeConfig = {
   footer: {
     component: <></>,
   },
+  nextThemes: {
+    defaultTheme: 'dark'
+  },
+  darkMode: false,
   sidebar: {
     toggleButton: true,
   },
