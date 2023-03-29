@@ -15,19 +15,28 @@ const FeaturesSection = () => {
       subtitle: "Join an open source community of top Haskell / Plutus developers and contribute to Atlas.",
       action: (
         <ButtonWrapper>
-          <Button>
-            <GitHubIcon />
-            <Typography fontWeight="400" fontSize="19px" lineHeight="24px" color="#FFFFFF" component="span">
-              Atlas App
-            </Typography>
-          </Button>
+          <a target="_blank" href="https://github.com/geniusyield/atlas-docs">
+            <Button>
+              <GitHubIcon />
+              <Typography fontWeight="400" fontSize="19px" lineHeight="24px" color="#FFFFFF" component="span">
+                Atlas App
+              </Typography>
+            </Button>
+          </a>
         </ButtonWrapper>
       ),
     },
     {
       title: "Do you need help?",
-      subtitle:
-        "If you're having any issue with developing with Atlas you can ask your questions in the Cardano Stackexchange community using the tag #Atlas",
+      subtitle: (
+        <>
+          If you{"'"}re having any issue with developing with Atlas you can ask your questions in the{" "}
+          <a href="https://cardano.stackexchange.com/" target="_blank" style={{ textDecoration: "underline" }}>
+            Cardano Stackexchange
+          </a>
+          &nbsp; community using the tag #Atlas
+        </>
+      ),
       action: <IllustrationHelp />,
     },
   ];

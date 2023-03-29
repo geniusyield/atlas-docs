@@ -18,15 +18,3 @@ a {
   font-family: "Inter-Bold";
   src: local("Inter-Bold"), url("../../public/fonts/Inter-Bold.ttf") format("truetype");
 }
-
-nav {
-  width: 1464px !important;
-  max-width: 90% !important;
-  padding: 0 !important;
-}
-
-@media (max-width: 1601px) {
-  nav {
-    width: 1220px !important;
-  }
-}

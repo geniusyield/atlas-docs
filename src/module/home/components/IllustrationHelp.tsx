@@ -70,7 +70,9 @@ const IllustrationHelp = () => (
       <Typography fontWeight="400" lineHeight="24px" fontSize="17px" color="rgba(255, 255, 255, 0.8)">
         I have a question about
       </Typography>
-      <Chip label="#Atlas" size="medium" color="primary" />
+      <a href="https://cardano.stackexchange.com/" target="_blank">
+        <Chip label="#Atlas" size="medium" color="primary" />
+      </a>
     </Header>
     <Content>
       {illustrationItems.map(({ id, icon, items }) => (

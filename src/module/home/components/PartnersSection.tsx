@@ -6,9 +6,9 @@ import Button from "../../../components/Button/Button";
 import LargeContainer from "../../../components/Container/LargeContainer";
 
 const cards = [
-  { id: 1, icon: "/images/partnersSection/mlabs.svg", href: "google.com" },
-  { id: 2, icon: "/images/partnersSection/well-typed.svg", href: "google.com" },
-  { id: 3, icon: "/images/partnersSection/plank.svg", href: "google.com" },
+  { id: 1, icon: "/images/partnersSection/mlabs.svg", href: "https://mlabs.city/" },
+  { id: 2, icon: "/images/partnersSection/well-typed.svg", href: "https://well-typed.com/" },
+  { id: 3, icon: "/images/partnersSection/plank.svg", href: "https://www.joinplank.com/lab/web3" },
 ];
 
 const PartnersSection = () => (
@@ -21,11 +21,13 @@ const PartnersSection = () => (
         {cards.map(({ id, icon, href }) => (
           <Card key={id}>
             <img src={icon} alt="" />
-            <Button href={href} color="secondary">
-              <Typography fontWeight="700" fontSize="12px" lineHeight="14px" color="#0B2599">
-                Partner
-              </Typography>
-            </Button>
+            <a href={href} target="_blank">
+              <Button color="secondary">
+                <Typography fontWeight="700" fontSize="12px" lineHeight="14px" color="#0B2599">
+                  Partner
+                </Typography>
+              </Button>
+            </a>
           </Card>
         ))}
       </CardWrapper>
@@ -83,6 +85,10 @@ const Card = styled("div")(({ theme }) => ({
   a: {
     marginTop: "auto",
     maxWidth: "105px",
+
+    button: {
+      background: "#8298FF",
+    },
   },
 
   img: {
