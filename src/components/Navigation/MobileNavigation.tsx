@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import IconButton from "../Button/IconButton";
 import { CloseIcon, MenuIcon } from "../Icons/Icons";
-import Image from "next/image";
 
 interface Props {
   navbar: {
@@ -41,8 +40,8 @@ const MobileNavigation = ({ navbar }: Props) => {
         <ButtonStyled variant="contained">
           <Typography className="title8" variant="title8">
             Get Started{" "}
-            <Image className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
-            <Image
+            <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
+            <img
               className="doubleArrowsShadow"
               alt="doubleArrowsShadow"
               src={"/images/titleSection/DoubleArrowsShadow.png"}

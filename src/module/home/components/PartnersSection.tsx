@@ -1,5 +1,4 @@
 import { styled, Typography } from "@mui/material";
-import Image from "next/image";
 import React from "react";
 
 import Button from "../../../components/Button/Button";
@@ -20,7 +19,7 @@ const PartnersSection = () => (
       <CardWrapper>
         {cards.map(({ id, icon, href }) => (
           <Card key={id}>
-            <Image src={icon} alt="" />
+            <img src={icon} alt="" />
             <Button href={href} color="secondary">
               <Typography fontWeight="700" fontSize="12px" lineHeight="14px" color="#0B2599">
                 Partner

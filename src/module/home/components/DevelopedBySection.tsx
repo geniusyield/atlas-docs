@@ -22,7 +22,7 @@ const DevelopedBySection = () => (
           </IconButton>
         </TextWithButton>
         <ImageWrapper>
-          <Image src="/images/developedBySection/image.png" alt="" />
+          <img src="/images/developedBySection/image.png" alt="" />
         </ImageWrapper>
       </Content>
     </LargeContainer>
