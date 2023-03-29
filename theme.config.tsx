@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 const config: DocsThemeConfig = {
   logo: <Logo />,
   project: {
-    link: "https://github.com/geniusyield/atlas",
+    link: "https://github.com/geniusyield/atlas-docs",
   },
   chat: {
     link: "https://discord.gg/TNHf4fs626",
