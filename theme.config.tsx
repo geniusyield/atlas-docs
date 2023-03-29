@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 const config: DocsThemeConfig = {
   logo: <Logo />,
   project: {
-    link: "https://github.com/geniusyield/atlas-docs",
+    link: "https://github.com/geniusyield/atlas",
   },
   docsRepositoryBase: "https://github.com/geniusyield/atlas-docs/tree/main",
   useNextSeoProps() {
@@ -55,7 +55,7 @@ const config: DocsThemeConfig = {
     component: <></>,
   },
   nextThemes: {
-    defaultTheme: 'dark'
+    defaultTheme: "dark",
   },
   darkMode: false,
   sidebar: {
