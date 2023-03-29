@@ -22,8 +22,8 @@ const TitleSection: FC = () => (
           </Subtitle>
         </Grid>
 
-        <TitleButton variant="contained">
-          <Link href={"/introduction"}>
+        <LinkWrapper href={"/introduction"}>
+          <TitleButton variant="contained">
             <Typography className="title8" variant="title8">
               Get Started
               <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
@@ -33,8 +33,8 @@ const TitleSection: FC = () => (
                 src={"/images/titleSection/DoubleArrowsShadow.png"}
               />
             </Typography>
-          </Link>
-        </TitleButton>
+          </TitleButton>
+        </LinkWrapper>
       </TitleContainer>
 
       <BrowserContainer
@@ -229,6 +229,10 @@ const Subtitle = styled(Typography)(({}) => ({
   WebkitTextFillColor: "transparent",
 }));
 
+const LinkWrapper = styled(Link)(({ theme }) => ({
+  margin: "0 auto",
+}));
+
 const TitleButton = styled(Button)(({ theme }) => ({
   width: "204px",
   height: "68px",
@@ -238,7 +242,7 @@ const TitleButton = styled(Button)(({ theme }) => ({
   border: `1px solid ${theme.palette.accent.grey01Transparency}`,
   boxShadow: `inset 0px 1px 0px ${theme.palette.accent.grey02Transparency}`,
 
-  "& .MuiTypography-root": {
+  "& > .MuiTypography-root": {
     display: "flex",
     alignItems: "center",
     gap: "5px",
