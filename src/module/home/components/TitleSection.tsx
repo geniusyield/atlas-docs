@@ -22,7 +22,7 @@ const TitleSection: FC = () => (
           </Subtitle>
         </Grid>
 
-        <LinkWrapper href={"/introduction"}>
+        <LinkWrapper id="get-started" href={"/introduction"}>
           <TitleButton variant="contained">
             <Typography className="title8" variant="title8">
               Get Started
@@ -175,7 +175,7 @@ const TitleSectionContainer = styled(Grid)(({ theme }) => ({
   },
 }));
 
-const ContainerWrapper = styled(Grid)(({ theme }) => ({
+const ContainerWrapper = styled(Container)(({ theme }) => ({
   [theme.breakpoints.down(992)]: {
     padding: "0px",
   },
@@ -282,12 +282,16 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     zIndex: "3",
     position: "absolute",
     left: "50%",
-    top: "110px",
+    top: "60px",
     transform: "translate(-50%, -50%)",
   },
 
   [theme.breakpoints.down(1500)]: {
     marginTop: "44vw",
+
+    "& .browserAtlasLogo": {
+      top: "80px",
+    },
   },
 
   [theme.breakpoints.down(1250)]: {
@@ -316,6 +320,7 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
 
   [theme.breakpoints.down(992)]: {
     marginTop: "28vw",
+    padding: "0 20px",
 
     "& .browserSection": {
       top: "71%",
@@ -344,8 +349,7 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
 
     "& .browserSection": {
       top: "10vw",
-      left: "20px",
-      width: "1000px",
+      left: "0px",
       margin: "0",
       transform: "none",
     },
@@ -361,17 +365,11 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     },
   },
 
-  [theme.breakpoints.down(400)]: {
-    "& .browserSection": {
-      left: "30px",
-    },
-  },
-
   [theme.breakpoints.down(360)]: {
     "& .browserSectionMobile": {
       display: "inline-block",
       position: "absolute",
-      left: "60px",
+      left: "16px",
       top: "1vw",
     },
 
@@ -391,7 +389,7 @@ const BrowserText = styled(Grid)(({ theme }) => ({
 
   [theme.breakpoints.down(992)]: {
     marginTop: "24vw",
-    padding: "0 0 100px 10px",
+    padding: "0 0 100px 0",
 
     "& .MuiGrid-container": {
       marginTop: "20px",
@@ -436,6 +434,10 @@ const BrowserText = styled(Grid)(({ theme }) => ({
   [theme.breakpoints.down(360)]: {
     paddingLeft: "20px",
     paddingBottom: "360px",
+
+    "& .text1": {
+      width: "250px",
+    },
   },
 
   [theme.breakpoints.down(350)]: {
