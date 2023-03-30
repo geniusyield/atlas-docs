@@ -1,26 +1,33 @@
 import React from "react";
 import { DocsThemeConfig } from "nextra-theme-docs";
 import Logo from "src/components/logo";
+import { useRouter } from "next/router";
 
 const config: DocsThemeConfig = {
   logo: <Logo />,
   project: {
     link: "https://github.com/geniusyield/atlas",
   },
-  chat: {
-    link: "https://discord.gg/TNHf4fs626",
-  },
   docsRepositoryBase: "https://github.com/geniusyield/atlas-docs/tree/main",
   useNextSeoProps() {
-    const description = "Atlas is an all-in-one, open-sourced Haskell-native application backend for writing off-chain code for on-chain Plutus smart contracts. Designed by Genius Yield, in collaboration with MLabs, Well-Typed and Plank.";
+    const { asPath } = useRouter();
+    const description = "All-in-one solution for writing off-chain code for Plutus contracts";
     return {
-      titleTemplate: "Atlas | %s",
+      titleTemplate: asPath === "/" ? "ATLAS Plutus Application Backend | by Genius Yield" : "Atlas | %s",
       description,
       canonical: "https://atlas-app.io",
       openGraph: {
         url: "https://atlas-app.io",
         description,
-        // TODO: Add for open-graph image.
+        images: [
+          {
+            url: "/open-graph.png",
+            width: 1200,
+            height: 630,
+            alt: "Atlas - Application backend for Plutus smart contracts on Cardano",
+            type: "image/png",
+          },
+        ],
       },
       siteName: "Atlas",
       twitter: {
@@ -41,12 +48,15 @@ const config: DocsThemeConfig = {
       <meta name="msapplication-TileColor" content="#da532c" />
       <meta name="msapplication-config" content="/favicon/browserconfig.xml" />
       <meta name="theme-color" content="#ffffff" />
-      {/* TODO: Add for twitter? */}
     </>
   ),
   footer: {
     component: <></>,
   },
+  nextThemes: {
+    defaultTheme: "dark",
+  },
+  darkMode: false,
   sidebar: {
     toggleButton: true,
   },

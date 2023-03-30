@@ -1,46 +1,48 @@
 /* eslint-disable @next/next/no-img-element */
 import { FC } from "react";
 import { Button, Grid, styled, Typography } from "@mui/material";
+import Container from "src/components/Container/Container";
+import Link from "next/link";
 
-const TitleSection: FC = () => {
-  return (
-    <TitleSectionContainer container width="100%" flex="true" overflow="hidden" justifyContent="center">
-      <img
-        className="atlasHoldingGalaxy"
-        alt="atlasHoldingGalaxy"
-        src={"/images/titleSection/AtlasHoldingGalaxy.png"}
-      />
+const TitleSection: FC = () => (
+  <TitleSectionContainer container width="100%" display="flex" overflow="hidden" justifyContent="center">
+    <img className="purpleTopShadow" alt="purpleTopShadow" src={"/images/titleSection/PurpleTopShadow.png"} />
+    <img className="blueTopShadow" alt="blueTopShadow" src={"/images/titleSection/BlueTopShadow.png"} />
 
-      <TitleContainer container flex="true" marginTop="250px" flexDirection="column">
+    <img className="atlasHoldingGalaxy" alt="atlasHoldingGalaxy" src={"/images/titleSection/AtlasHoldingGalaxy.png"} />
+    <ContainerWrapper>
+      <TitleContainer container display="flex" marginTop="250px" flexDirection="column">
         <Typography className="title1" variant="title1" textAlign="center">
           Making dApps easy
         </Typography>
 
-        <Grid container flex="true" flexDirection="column" marginTop="20px">
+        <Grid container display="flex" flexDirection="column" marginTop="20px">
           <Subtitle className="title5" variant="title5" textAlign="center">
             An all-in-one open source solution to build on Cardano
           </Subtitle>
         </Grid>
 
-        <TitleButton variant="contained">
-          <Typography className="title8" variant="title8">
-            Get Started{" "}
-            <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
-            <img
-              className="doubleArrowsShadow"
-              alt="doubleArrowsShadow"
-              src={"/images/titleSection/DoubleArrowsShadow.png"}
-            />
-          </Typography>
-        </TitleButton>
+        <LinkWrapper id="get-started" href={"/introduction"}>
+          <TitleButton variant="contained">
+            <Typography className="title8" variant="title8">
+              Get Started
+              <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
+              <img
+                className="doubleArrowsShadow"
+                alt="doubleArrowsShadow"
+                src={"/images/titleSection/DoubleArrowsShadow.png"}
+              />
+            </Typography>
+          </TitleButton>
+        </LinkWrapper>
       </TitleContainer>
 
       <BrowserContainer
         container
-        flex="true"
+        display="flex"
         flexDirection="column"
-        width="1220px"
-        padding="0 60px"
+        width="100%"
+        padding="0 50px"
         margin="660px auto 0">
         <img className="browserSection" alt="browserSection" src={"/images/titleSection/BrowserSection.png"} />
         <img
@@ -51,27 +53,25 @@ const TitleSection: FC = () => {
 
         <img className="browserAtlasLogo" alt="browserAtlasLogo" src={"/images/titleSection/AtlasLogo.png"} />
 
-        <BrowserText container flex="true" marginTop="200px" flexDirection="row" justifyContent="flex-start">
+        <BrowserText container display="flex" marginTop="200px" flexDirection="row" justifyContent="flex-start">
           <img className="blueBrowserTabs" alt="blueBrowserTabs" src={"/images/titleSection/BlueBrowserTabs.png"} />
 
-          <Grid container flex="true" marginTop="40px" flexDirection="column">
+          <Grid container display="flex" marginTop="40px" flexDirection="column">
             <Typography className="title4" variant="title4" width="440px">
               Build transactions and execute smart contracts with ease
             </Typography>
           </Grid>
-          <Grid container flex="true" marginTop="30px" flexDirection="column">
+          <Grid container display="flex" marginTop="30px" flexDirection="column">
             <Typography className="text1" variant="text1" width="440px">
               Leverage Atlas intuitive API to abstract away the complexity around building transactions, balancing
               UTxOs, and interfacing with Plutus smart contracts.
             </Typography>
           </Grid>
-
-          <img className="codeMobile" alt="codeMobile" src={"/images/titleSection/CodeMobile.png"}></img>
         </BrowserText>
       </BrowserContainer>
-    </TitleSectionContainer>
-  );
-};
+    </ContainerWrapper>
+  </TitleSectionContainer>
+);
 
 const TitleSectionContainer = styled(Grid)(({ theme }) => ({
   backgroundColor: theme.palette.accent.dark,
@@ -80,6 +80,18 @@ const TitleSectionContainer = styled(Grid)(({ theme }) => ({
   backgroundPosition: "0px 0px,0px 0px,0px 0px,0px 0px,0px 0px",
   background: "black",
   overflow: "hidden",
+
+  "& > .purpleTopShadow": {
+    position: "absolute",
+    top: "0px",
+    left: "0px",
+  },
+
+  "& > .blueTopShadow": {
+    position: "absolute",
+    top: "0px",
+    right: "0px",
+  },
 
   "& > .atlasHoldingGalaxy": {
     position: "absolute",
@@ -163,12 +175,21 @@ const TitleSectionContainer = styled(Grid)(({ theme }) => ({
   },
 }));
 
+const ContainerWrapper = styled(Container)(({ theme }) => ({
+  [theme.breakpoints.down(992)]: {
+    padding: "0px",
+  },
+}));
+
 const TitleContainer = styled(Grid)(({ theme }) => ({
-  zIndex: "2",
+  "& .title1": {
+    zIndex: "2",
+  },
 
   "& .title5": {
     width: "480px",
     margin: "0 auto",
+    zIndex: "2",
   },
 
   [theme.breakpoints.down(992)]: {
@@ -201,18 +222,22 @@ const TitleContainer = styled(Grid)(({ theme }) => ({
   },
 }));
 
-const Subtitle = styled(Typography)(({ theme }) => ({
+const Subtitle = styled(Typography)(({}) => ({
   background:
     "radial-gradient(63.67% 100% at 50% 100%, #073bf44f 0%, #0d41f600 100%), linear-gradient(180deg, #ffffff8a 0%, #FFFFFF 100%)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
 }));
 
+const LinkWrapper = styled(Link)(({ theme }) => ({
+  margin: "0 auto",
+}));
+
 const TitleButton = styled(Button)(({ theme }) => ({
   width: "204px",
   height: "68px",
   margin: "40px auto 0",
-  background: theme.palette.accent.blueLinearGradient,
+  background: `${theme.palette.accent.blueLinearGradient} !important`,
   borderRadius: theme.borderRadius.sm,
   border: `1px solid ${theme.palette.accent.grey01Transparency}`,
   boxShadow: `inset 0px 1px 0px ${theme.palette.accent.grey02Transparency}`,
@@ -243,16 +268,11 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     display: "none",
   },
 
-  "& .codeMobile": {
-    display: "none",
-  },
-
   "& > .browserSection": {
     position: "absolute",
     left: "50%",
     top: "50%",
-    maxWidth: "1220px",
-    width: "90%",
+    width: "100%",
     margin: "0 auto",
     transform: "translate(-50%, -50%)",
   },
@@ -262,12 +282,16 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     zIndex: "3",
     position: "absolute",
     left: "50%",
-    top: "100px",
+    top: "60px",
     transform: "translate(-50%, -50%)",
   },
 
   [theme.breakpoints.down(1500)]: {
     marginTop: "44vw",
+
+    "& .browserAtlasLogo": {
+      top: "80px",
+    },
   },
 
   [theme.breakpoints.down(1250)]: {
@@ -296,6 +320,7 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
 
   [theme.breakpoints.down(992)]: {
     marginTop: "28vw",
+    padding: "0 20px",
 
     "& .browserSection": {
       top: "71%",
@@ -324,8 +349,7 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
 
     "& .browserSection": {
       top: "10vw",
-      left: "30px",
-      width: "1000px",
+      left: "0px",
       margin: "0",
       transform: "none",
     },
@@ -341,43 +365,15 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
     },
   },
 
-  [theme.breakpoints.down(560)]: {
-    "& .codeMobile": {
-      display: "inline-block",
-    },
-  },
-
-  [theme.breakpoints.down(450)]: {
-    "& .browserSection": {
-      left: "20vw",
-    },
-  },
-
-  [theme.breakpoints.down(420)]: {
-    "& .browserSection": {
-      left: "25vw",
-    },
-  },
-
-  [theme.breakpoints.down(380)]: {
-    "& .browserSection": {
-      left: "35vw",
-    },
-  },
-
   [theme.breakpoints.down(360)]: {
     "& .browserSectionMobile": {
       display: "inline-block",
       position: "absolute",
-      left: "29vw",
+      left: "16px",
       top: "1vw",
     },
 
     "& .browserSection": {
-      display: "none",
-    },
-
-    "& .codeMobile": {
       display: "none",
     },
 
@@ -389,11 +385,11 @@ const BrowserContainer = styled(Grid)(({ theme }) => ({
 
 const BrowserText = styled(Grid)(({ theme }) => ({
   zIndex: "3",
-  padding: "0 0 180px 30px",
+  paddingBottom: "180px",
 
   [theme.breakpoints.down(992)]: {
     marginTop: "24vw",
-    padding: "0 0 100px 10px",
+    padding: "0 0 100px 0",
 
     "& .MuiGrid-container": {
       marginTop: "20px",
@@ -432,20 +428,16 @@ const BrowserText = styled(Grid)(({ theme }) => ({
   },
 
   [theme.breakpoints.down(450)]: {
-    paddingLeft: "9vw",
-  },
-
-  [theme.breakpoints.down(450)]: {
-    paddingLeft: "15vw",
-  },
-
-  [theme.breakpoints.down(380)]: {
-    paddingLeft: "24vw",
+    paddingLeft: "0px",
   },
 
   [theme.breakpoints.down(360)]: {
-    paddingLeft: "16vw",
+    paddingLeft: "20px",
     paddingBottom: "360px",
+
+    "& .text1": {
+      width: "250px",
+    },
   },
 
   [theme.breakpoints.down(350)]: {
