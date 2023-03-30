@@ -34,11 +34,6 @@ function App({ Component, pageProps }: AppProps) {
     </>
     <ThemeProvider theme={theme}>
       <Helmet>
-        <meta charSet="utf-8" />
-        <title>Your Website Title</title>
-        <meta name="description" content="Your website description" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta
           httpEquiv="Content-Security-Policy"
           content="
