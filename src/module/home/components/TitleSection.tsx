@@ -22,7 +22,7 @@ const TitleSection: FC = () => (
           </Subtitle>
         </Grid>
 
-        <LinkWrapper href={"/introduction"}>
+        <LinkWrapper id="get-started" href={"/introduction"}>
           <TitleButton variant="contained">
             <Typography className="title8" variant="title8">
               Get Started
