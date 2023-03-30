@@ -53,7 +53,7 @@ PlutusTx.unstableMakeIsData ''OracleAnswerDatum
 
 ### Contract Datum
 
-Contract's datum consists of two fields:
+It consists of two fields:
 
 1. List containing each person's guess along with their payment public key hash. Key hash is used to tie guess with the guesser. Every time a new guess is made, we prepend it to this list.
    This key hash is obtained from transaction signatories - we insist on key hash being present in signatories as otherwise anyone may override bet of someone else.
