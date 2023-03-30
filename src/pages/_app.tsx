@@ -31,8 +31,7 @@ function App({ Component, pageProps }: AppProps) {
           `,
         }}
       />
-    </>
-    <ThemeProvider theme={theme}>
+      <ThemeProvider theme={theme}>
       <Helmet>
         <meta
           httpEquiv="Content-Security-Policy"
@@ -51,6 +50,7 @@ function App({ Component, pageProps }: AppProps) {
       </Helmet>
       <Component {...pageProps} />
     </ThemeProvider>
+    </>
   );
 }
 export default App;
