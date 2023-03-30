@@ -2,9 +2,9 @@ name: Deploy to Github Pages
 
 on:
   push:
-    branches: [main]
+    branches: ["main"]
   pull_request:
-    branches: [main]
+    branches: ["main"]
 
 jobs:
   github_pages_deploy:
@@ -20,6 +20,7 @@ jobs:
           yarn install
           yarn export
       - name: Deploy
+        if: github.ref_name == 'main'
         run: |
           git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
           yarn deploy -- -u "github-actions-bot <support+actions@github.com>"
