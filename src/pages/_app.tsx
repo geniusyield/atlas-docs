@@ -11,11 +11,13 @@ function App({ Component, pageProps }: AppProps) {
 
   return (
     <>
+      {/* GTM Integration */}
       <Script
         id="tagmanager-main"
         strategy="afterInteractive"
         async
-        src={`https://www.googletagmanager.com/gtag/js?id="GTM-PVJFBVL"`}></Script>
+        src={`https://www.googletagmanager.com/gtag/js?id="GTM-PVJFBVL"`}
+      />
       <Script
         id="tagmanager-setup"
         strategy="afterInteractive"
