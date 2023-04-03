@@ -15,7 +15,7 @@ const FeaturesSection = () => {
       subtitle: "Join an open source community of top Haskell / Plutus developers and contribute to Atlas.",
       action: (
         <ButtonWrapper>
-          <a target="_blank" id="github-features" href="https://github.com/geniusyield/atlas">
+          <a target="_blank" href="https://github.com/geniusyield/atlas">
             <Button>
               <GitHubIcon />
               <Typography fontWeight="400" fontSize="19px" lineHeight="24px" color="#FFFFFF" component="span">

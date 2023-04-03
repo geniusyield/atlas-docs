@@ -1,13 +1,13 @@
+import { useEffect } from "react";
 import type { AppProps } from "next/app";
+import { useRouter } from "next/router";
 import Script from "next/script";
 import { createTheme, ThemeProvider } from "@mui/material";
 
+import { pageview } from "../lib/gtm/gtm";
 import { getTheme } from "../lib/theme/theme";
 
 import "../styles/globals.css";
-import { pageview } from "src/lib/gtm/gtm";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
 
 function App({ Component, pageProps }: AppProps) {
   const theme = createTheme(getTheme());
