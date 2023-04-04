@@ -12,7 +12,7 @@ Let's start by writing a smart contract that we will convey the framework's most
 
 <Callout>
 
-  Here we'll be writing our smart contract in Haskell but do note that we are not limited to it. You for instance could write your smart contract in any language of your choice and read the compiled CBOR using `scriptFromCBOR` function defined [here](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs). [Operations over Contract](./operations.mdx) chapter explains about `PlutusVersion` (a type used in this function) and will enable one to understand how to use this `scriptFromCBOR` function. Similarly, there is `readScript` defined in the [same](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) file to read from the compiled [text envelope](https://input-output-hk.github.io/cardano-node/cardano-api/lib/Cardano-Api.html#t:HasTextEnvelope) file.
+  Here we'll be writing our smart contract in Haskell but do note that we are not limited to it. You for instance could write your smart contract in any language of your choice and read the compiled CBOR using `scriptFromCBOR` function defined [here](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) ([Operations over Contract](./operations.mdx) chapter explains about types such as `GYScript`, `PlutusVersion` which are used in this function). Similarly, there is `readScript` defined in the [same](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) file to read from the compiled [text envelope](https://input-output-hk.github.io/cardano-node/cardano-api/lib/Cardano-Api.html#t:HasTextEnvelope) file.
 
 </Callout>
 
