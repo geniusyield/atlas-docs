@@ -320,12 +320,12 @@ const BrowserFunctions = () => {
         const addIdx = data.urspUtxoRefIdx;
 
         const finalTxCbor = await signTx(api, data.urspTxBodyHex);
-        const lucid = await Lucid.new(undefined, "Preprod")
-        lucid.selectWallet(api)
-        const lucidTxComplete = lucid.fromTx(data.urspTxBodyHex)
+        const lucid = await Lucid.new(undefined, "Preprod");
+        lucid.selectWallet(api);
+        const lucidTxComplete = lucid.fromTx(data.urspTxBodyHex);
         const lucidTxSigned = await lucidTxComplete.sign().complete();
-        const lucidTxSignedString = lucidTxSigned.toString()
-        console.log("Lucid's final tx cbor: ", lucidTxSigned.toString())
+        const lucidTxSignedString = lucidTxSigned.toString();
+        console.log("Lucid's final tx cbor: ", lucidTxSigned.toString());
         // const txHash = await lucidTxSigned.submit()
         // console.log(txHash)
         // throw "REMOVE ME after testing"
