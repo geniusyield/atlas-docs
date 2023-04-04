@@ -8,7 +8,14 @@ const config: DocsThemeConfig = {
   logo: <Logo />,
   project: {
     link: "https://github.com/geniusyield/atlas",
-    icon: (<Image src="https://img.shields.io/github/stars/geniusyield/atlas?label=&style=social" alt="Atlas GeniusYield Github repo stars" width='70' height='35' />)
+    icon: (
+      <Image
+        src="https://img.shields.io/github/stars/geniusyield/atlas?label=&style=social"
+        alt="Atlas GeniusYield Github repo stars"
+        width="70"
+        height="35"
+      />
+    ),
   },
   docsRepositoryBase: "https://github.com/geniusyield/atlas-docs/tree/main",
   useNextSeoProps() {
