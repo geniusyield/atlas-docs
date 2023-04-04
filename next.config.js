@@ -13,6 +13,8 @@ module.exports = withNextra({
     config.experiments = {
       asyncWebAssembly: true,
       layers: true,
+      // following is for lucid
+      topLevelAwait: true,
     };
 
     if (!dev && isServer) {

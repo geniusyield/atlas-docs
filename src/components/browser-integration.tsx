@@ -3,6 +3,7 @@ import { bech32 } from "bech32";
 import * as C from "@dcspark/cardano-multiplatform-lib-browser";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useState } from "react";
+import { Lucid } from "lucid-cardano";
 
 const simpleRequired = {
   required: "Required",
@@ -94,11 +95,11 @@ export type WalletApi = {
   };
 };
 
-declare global {
-  interface Window {
-    cardano: any;
-  }
-}
+// declare global {
+//   interface Window {
+//     cardano: any;
+//   }
+// }
 
 interface BrpParamsRaw {
   brpOracleAddress: string;
@@ -124,7 +125,7 @@ export const fromHex = (hexString: string): Uint8Array =>
 export const toHex = (bytes: Uint8Array): string =>
   bytes.reduce((str: string, byte: number) => str + byte.toString(16).padStart(2, "0"), "");
 
-const signAndSubmitTx = async (api: WalletApi, txCborHex: string): Promise<string> => {
+const signTx = async (api: WalletApi, txCborHex: string): Promise<string> => {
   console.log("Unsigned transaction CBOR hex is " + txCborHex);
 
   // parse the base tx into the serialization lib model
@@ -318,9 +319,18 @@ const BrowserFunctions = () => {
 
         const addIdx = data.urspUtxoRefIdx;
 
-        const finalTxCbor = await signAndSubmitTx(api, data.urspTxBodyHex);
+        const finalTxCbor = await signTx(api, data.urspTxBodyHex);
+        const lucid = await Lucid.new(undefined, "Preprod")
+        lucid.selectWallet(api)
+        const lucidTxComplete = lucid.fromTx(data.urspTxBodyHex)
+        const lucidTxSigned = await lucidTxComplete.sign().complete();
+        const lucidTxSignedString = lucidTxSigned.toString()
+        console.log("Lucid's final tx cbor: ", lucidTxSigned.toString())
+        // const txHash = await lucidTxSigned.submit()
+        // console.log(txHash)
+        // throw "REMOVE ME after testing"
         // txHash = await wallet.submitTx(finalTxCbor);  // alternate
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
+        const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", lucidTxSignedString, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -393,7 +403,7 @@ const BrowserFunctions = () => {
         const { data } = await axios.post("http://localhost:8081/betref/place", body);
         console.log(data);
         const placeIdx = data.urspUtxoRefIdx;
-        const finalTxCbor = await signAndSubmitTx(api, data.urspTxBodyHex);
+        const finalTxCbor = await signTx(api, data.urspTxBodyHex);
         // txHash = await wallet.submitTx(finalTxCbor);  // alternate
         const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
           headers: {
@@ -483,7 +493,7 @@ const BrowserFunctions = () => {
         const { data } = await axios.post("http://localhost:8081/betref/add-ref-input", body);
         console.log(data);
         const addIdx = data.urspUtxoRefIdx;
-        const finalTxCbor = await signAndSubmitTx(api, data.urspTxBodyHex);
+        const finalTxCbor = await signTx(api, data.urspTxBodyHex);
         // txHash = await wallet.submitTx(finalTxCbor);  // alternate
         const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
           headers: {
@@ -552,7 +562,7 @@ const BrowserFunctions = () => {
         console.log(body);
         const { data } = await axios.post("http://localhost:8081/betref/take", body);
         console.log(data);
-        const finalTxCbor = await signAndSubmitTx(api, data.urspTxBodyHex);
+        const finalTxCbor = await signTx(api, data.urspTxBodyHex);
         // txHash = await wallet.submitTx(finalTxCbor);  // alternate
         const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
           headers: {
