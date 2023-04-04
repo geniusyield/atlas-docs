@@ -368,6 +368,16 @@ takeBets refScript brp previousBetsUtxoRef ownAddr oracleRefInput = do
     <> mustBeSignedBy pkh
 ```
 
+## Additional Useful Functions
+
+### `utxosDatums`
+
+Sometimes we want to see all _valid_ UTxOs at our script address. In Cardano, anyone can form UTxO at any address and such a UTxO need not have valid datum as required by our script. `utxosDatums` can be used wither out invalid ones. See it's usage in [Vesting example](./../more-tutorials#vesting).
+
+### `mustMint`
+
+We weren't minting any tokens in our example here and thus didn't make use of `mustMint` skeleton function. It's sample usage is given in [this](https://github.com/geniusyield/atlas/blob/main/src/GeniusYield/Api/TestTokens.hs) example. Which also illustrates how one can mint NFT and shows usage of `someUTxO` function which essentially gives some random UTxO belonging to wallet.
+
 [^1]: This is related to singletons and one can read about it from the "Dependent Types" chapter (the last one) in [Thinking with Types](https://thinkingwithtypes.com/) book.
 
 [^2]: This however is not true for normal inputs where you can specify the datum as we'll see in other operations.

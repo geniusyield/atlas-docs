@@ -9,7 +9,7 @@ We already saw how we can conveniently write tests for our smart contract using 
 |--------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | Runs against mock ledger                                           | Runs against real node                                                        |
 | Each unit test gets fresh set of wallets (having original balance) | Each subsequent unit test continues upon the effects caused by previous ones |
-| Fast, purer & convenient                                                     | Slow as each slot is 0.1 second                                              |
+| Fast, purer (no `IO`) & convenient                                                     | Slow as each slot is 0.1 second                                              |
 
 Thus these tests are suitable for integration testing.
 
