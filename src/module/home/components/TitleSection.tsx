@@ -22,8 +22,8 @@ const TitleSection: FC = () => (
           </Subtitle>
         </Grid>
 
-        <LinkWrapper id="get-started" href={"/introduction"}>
-          <TitleButton variant="contained">
+        <LinkWrapper href={"/introduction"}>
+          <TitleButton id="get-started" variant="contained">
             <Typography className="title8" variant="title8">
               Get Started
               <img className="doubleArrows" alt="doubleArrows" src={"/images/titleSection/DoubleArrows.png"} />
