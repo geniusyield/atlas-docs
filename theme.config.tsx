@@ -2,11 +2,13 @@ import React from "react";
 import { DocsThemeConfig } from "nextra-theme-docs";
 import Logo from "src/components/logo";
 import { useRouter } from "next/router";
+import Image from "next/image";
 
 const config: DocsThemeConfig = {
   logo: <Logo />,
   project: {
     link: "https://github.com/geniusyield/atlas",
+    icon: (<Image src="https://img.shields.io/github/stars/geniusyield/atlas?label=&style=social" alt="Atlas GeniusYield Github repo stars" width='70' height='35' />)
   },
   docsRepositoryBase: "https://github.com/geniusyield/atlas-docs/tree/main",
   useNextSeoProps() {
