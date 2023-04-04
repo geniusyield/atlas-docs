@@ -14,6 +14,7 @@ const config: DocsThemeConfig = {
         alt="Atlas GeniusYield Github repo stars"
         width="70"
         height="35"
+        id="github"
       />
     ),
   },
