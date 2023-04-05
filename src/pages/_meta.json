@@ -11,6 +11,12 @@
     "type": "page",
     "href": "/introduction"
   },
+  "haddock": {
+    "title": "Haddock",
+    "type": "page",
+    "href": "https://haddock.atlas-app.io",
+    "newWindow": true
+  },
   "introduction": "Introduction",
   "getting-started": "Getting Started",
   "more-tutorials": "More Tutorials"
