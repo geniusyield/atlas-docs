@@ -14,7 +14,7 @@ The entire code pertaining to browser operations is available [here](https://git
 </Callout>
 
 ```typescript
-const signAndSubmitTx = async (api: WalletApi, txCborHex: string): Promise<string> => {
+const signTx = async (api: WalletApi, txCborHex: string): Promise<string> => {
 
   console.log('Unsigned transaction CBOR hex is ' + txCborHex);
 
@@ -55,7 +55,7 @@ An outline of this whole process is given below (actual `body` construction for 
 
 ```typescript
 const {data} = await axios.post('http://localhost:8081/betref/add-ref-script', body)
-const finalTxCbor = await signAndSubmitTx(api, data.urspTxBodyHex)
+const finalTxCbor = await signTx(api, data.urspTxBodyHex)
 // txHash = await wallet.submitTx(finalTxCbor);  // alternate
 const {data: submitData} = await axios.post('http://localhost:8081/tx/submit', finalTxCbor, {
   headers: {
@@ -75,4 +75,8 @@ In case the requests get blocked by browser, try running this page locally, inst
 
 <Callout emoji="🎉">
 And with this, we come to an end of our [Getting Started](./../getting-started) guide 🥳! Hope you enjoyed it 💙
+</Callout>
+
+<Callout type="info" emoji="❓">
+**Have questions?** Ask them at [Cardano StackExchange](https://cardano.stackexchange.com/questions/tagged/atlas).
 </Callout>

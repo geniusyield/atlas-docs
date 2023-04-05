@@ -10,6 +10,12 @@ Let's start by writing a smart contract that we will convey the framework's most
 
 </Callout>
 
+<Callout>
+
+  Here we'll be writing our smart contract in Haskell but do note that we are not limited to it. You for instance could write your smart contract in any language of your choice and read the compiled CBOR using `scriptFromCBOR` function defined [here](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) ([Operations over Contract](./operations.mdx) chapter explains about types such as `GYScript`, `PlutusVersion` which are used in this function). Similarly, there is `readScript` defined in the [same](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) file to read from the compiled [text envelope](https://input-output-hk.github.io/cardano-node/cardano-api/lib/Cardano-Api.html#t:HasTextEnvelope) file.
+
+</Callout>
+
 ## Contract Description
 
 Setting here is that we have a sport match happening and a group of friends want to bet on the number of goals scored by their favorite team in it.

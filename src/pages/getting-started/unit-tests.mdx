@@ -304,6 +304,12 @@ testRun "Not adding atleast bet step amount should fail" $ mustFail . multipleBe
 
 Here wallet `w4` didn't increase the bet by 10 ada and thus must fail.
 
+<Callout>
+
+  Sometimes we want to assert specific failure among other possible failures. As `mustFail` above doesn't distinguish among them, one can simply use `catchError` like in [this](https://github.com/geniusyield/atlas/tree/main/tests/GeniusYield/Test/RefInput.hs) test.
+
+</Callout>
+
 ## Unit tests for taking the bet pot
 
 <Callout type="warning" emoji="📃">
