@@ -56,10 +56,7 @@ function App({ Component, pageProps }: AppProps) {
       />
       <ThemeProvider theme={theme}>
         <Helmet>
-          <meta
-            httpEquiv="Content-Security-Policy"
-            content={cspContent}
-          />
+          <meta httpEquiv="Content-Security-Policy" content={cspContent} />
           <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
           <meta httpEquiv="X-Frame-Options" content="SAMEORIGIN" />
           <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
