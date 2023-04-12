@@ -10,15 +10,19 @@ Let's start by writing a smart contract that we will convey the framework's most
 
 </Callout>
 
+<Callout>
+
+  Here we'll be writing our smart contract in Haskell but do note that we are not limited to it. You for instance could write your smart contract in any language of your choice and read the compiled CBOR using `scriptFromCBOR` function defined [here](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) ([Operations over Contract](./operations.mdx) chapter explains about types such as `GYScript`, `PlutusVersion` which are used in this function). Similarly, there is `readScript` defined in the [same](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) file to read from the compiled [text envelope](https://input-output-hk.github.io/cardano-node/cardano-api/lib/Cardano-Api.html#t:HasTextEnvelope) file.
+
+</Callout>
+
 ## Contract Description
 
 Setting here is that we have a sport match happening and a group of friends want to bet on the number of goals scored by their favorite team in it.
 
 Winner is the one whose guess is closest (and in case of tie - the one who takes it fastest!).
 
-The smart contract code is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/onchain/BetRef/OnChain/BetRef.hs)
-
-This example was inspired by [MLabs](https://github.com/mlabs-haskell/plutus-simple-model/blob/main/psm/test/Suites/Plutus/Model/Script/V2/Onchain/Oracle.hs).
+The smart contract code is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/onchain/BetRef/OnChain/BetRef.hs). This example was inspired by [MLabs](https://github.com/mlabs-haskell/plutus-simple-model/blob/main/psm/test/Suites/Plutus/Model/Script/V2/Onchain/Oracle.hs).
 
 ### Contract Parameters
 
@@ -55,10 +59,12 @@ PlutusTx.unstableMakeIsData ''OracleAnswerDatum
 
 ### Contract Datum
 
+It consists of two fields:
+
 1. List containing each person's guess along with their payment public key hash. Key hash is used to tie guess with the guesser. Every time a new guess is made, we prepend it to this list.
    This key hash is obtained from transaction signatories - we insist on key hash being present in signatories as otherwise anyone may override bet of someone else.
 
-2. Amount denoting the previously placed bet. Note that the total value in the concerned UTxO is a culmination of **all** the previously placed bets and thus isn't in general equal to last placed bet. We use this to see that the newly placed bet is more than the previous one by `brpBetStep` amount.
+2. Amount denoting the previously placed bet. Note that the total value in the UTxO belonging to contract is the culmination of **all** the previously placed bets and thus it isn't in general equal to last placed bet. We use this to assert that the newly placed bet is more than the previous one by `brpBetStep` amount.
 
 ```haskell filename="BetRef.hs"
 -- | List of guesses by users along with the maximum bet placed yet. A new guess gets /prepended/ to this list. Note that since we are always meant to increment previously placed bet with `brpBetStep`, the newly placed bet would necessarily be maximum (it would be foolish to initialize `brpBetStep` with some negative amounts).
@@ -89,13 +95,13 @@ PlutusTx.unstableMakeIsData ''BetRefAction
 
 ### Placing a bet
 
-Initial bet gets placed as it is (in Cardano, validator script is executed only when spending an UTxO belonging to it but not for creating at it).
+Initial bet gets placed as it is (in Cardano, validator script is executed only when spending an UTxO belonging to it but not for creating _at it_).
 
 For subsequent bets, we require three conditions:
 
 1. The bet must be before (inclusive) the `brpBetUntil` time.
 2. There must be exactly one continuing output at the script address whose datum shall have the current guess prepended to it along with the current bet amount.
-3. The current bet must be more than the previous bet by atleast `brpBetStep` amount.
+3. The current bet must be more than the previous bet by at least `brpBetStep` amount.
 
 This is coded as:
 

@@ -7,9 +7,9 @@ Having understood the contract. Now is the time we actually start using our fram
 
 The main principle to understand here is that - we only need to give the essentials, i.e. we only specify what we _want_ and it is the job of the framework to do the rest.
 
-For instance, we may tell that we want to consume this input belonging to the script's address and generate some output. Given that, it becomes framework's job to do the rest, say:
+For instance, we may tell that we want to consume a specific input belonging to the script's address and generate a specific output. Given that, it becomes framework's job to do the rest, say:
 
-* Select available UTxO's in user's wallet and generate suitable change output to balance the transaction considering fees.
+* Select available UTxO's in user's wallet and generate suitable change output to balance the transaction, considering fees.
 * Make sure all generated UTxO's satisfy minimum ada requirement.
 * Handle collateral.
 * etc, etc.
@@ -22,7 +22,7 @@ Entire code for these operations is available [here](https://github.com/geniusyi
 
 ### Generating Validator for our Smart Contract
 
-Following the usual drill, we generate the Validator given contract parameters (following is written in file [`Compiled.hs`](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/onchain/BetRef/OnChain/BetRef/Compiled.hs):
+Following the usual drill, we generate the Validator given contract parameters (following is written in file [`Compiled.hs`](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/onchain/BetRef/OnChain/BetRef/Compiled.hs)):
 
 ```haskell filename="Compiled.hs"
 -- | Generates validator given params.
@@ -31,7 +31,7 @@ betRefValidator betRefParams = mkValidatorScript $
     $$(PlutusTx.compile [|| mkBetRefValidator||]) `PlutusTx.applyCode` PlutusTx.liftCode betRefParams
 ```
 
-What we have obtained is of [`Validator`](https://playground.plutus.iohkdev.io/doc/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Scripts.html#t:Validator) type defined in `plutus-ledger-api`, which is nothing but a wrapper around `Script` type defined in same.
+What we have obtained is of type `Validator`, defined in `plutus-ledger-api`, which is nothing but a wrapper around `Script` type defined in same.
 
 Likewise, we have our own types, `GYValidator` (similarly `GYMintingPolicy` for minting policy scripts) & `GYScript` (defined in [`Script.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs)) to represent these in our framework.
 
@@ -41,7 +41,7 @@ If we look at the type signature of `validatorFromPlutus`, we see: `validatorFro
 
 ### Interlude - `GYTxQueryMonad`
 
-When we want to obtain the address of the script from its hash, we besides the hash, also need to know the network we are currently operating at. Is it some testnet or mainnet?
+When we want to obtain the address of the script from its hash, besides the hash, we also need to know the network we are currently operating at. Is it some testnet or mainnet?
 
 Similarly, transaction building involves querying the ledger for various information like say querying UTxO's present at one's address, similarly it might need help of some chain indexer to query datum in case output contains only the datum's hash.
 
@@ -163,10 +163,10 @@ As mentioned before, we just mention at high level what we want in a transaction
 
 | Fields           | Represented by      | Additional details                                                                                                                                                                                                                                                                                                                                                            |
 |------------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Inputs           | `gytxIns`           | It is a list of inputs where for each input, we have its UTxO reference (the "TxIn" as the [cardano ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/latest/download/byron-ledger.pdf) calls it) and a witness. In case this UTxO doesn't belong to a script, we just need spending key witness otherwise we need the associated script, its datum and input redeemer where the associated script could be provided as part of this transaction body or could be obtained from reference input. See [`TxIn.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/TxIn.hs). |
+| Inputs           | `gytxIns`           | It is a list of inputs where for each input, we have its UTxO reference (the "TxIn" as the [cardano ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/latest/download/byron-ledger.pdf) calls it) and a witness. In case this UTxO doesn't belong to a script, we just need spending key witness, otherwise we need the associated script, its datum and input redeemer where the associated script could be provided as part of this transaction body or could be obtained from reference input. See [`TxIn.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/TxIn.hs). |
 | Outputs          | `gytxOuts`          | List of outputs produced by this transaction where for each output we can mention whether the datum is to be inlined or not and whether this output stores any script. See [`TxOut.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/TxOut.hs).                                                                                                                                                                                  |
 | Reference Inputs | `gytxRefIns`        | Set of reference to UTxOs corresponding to reference inputs. Defined in same file, viz. [`Class.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/TxBuilder/Class.hs).                                                                                                                                                                                                                                                                                                                               |
-| Mints            | `gytxMint`          | Map of minting policy to tuple of redeemer and another map for token name to mint amount for that token.                                                                                                                                                                                                                                                                      |
+| Mints            | `gytxMint`          | Map of minting policy to pair of redeemer and another map for token name to mint amount for that token.                                                                                                                                                                                                                                                                      |
 | Signatories      | `gytxSigs`          | Set of Public Key Hash of Signatories.                                                                                                                                                                                                                                                                                                                                        |
 | Valid after      | `gytxInvalidBefore` | Just the corresponding node slot.                                                                                                                                                                                                                                                                                                                                                           |
 | Valid before     | `gytxInvalidAfter`  | Same as above.                                                                                                                                                                                                                                                                                                                                                                |
@@ -312,7 +312,7 @@ Following is the complete code for handling this case. Few comments to facilitat
 * `timeFromPlutus` is as you'll expect - gives us the framework's representation of time from that of plutus. And `enclosingSlotFromTime'` uses ledger's information to determine the corresponding slot for the given time. We need this as cardano's node work in slots. We mention that our transaction is to be invalid after this slot using `isInvalidAfter`.
 
 
-* We mention that our transaction must have our public key hash as signatories when plutus smart contract asks for it using `mustBeSignedBy`
+* We mention that our transaction must have our public key hash as signatories when plutus smart contract asks for it using `mustBeSignedBy`.
 
 * Lastly, this transaction must generate an output to the script's address with the updated datum and added value.
   * `valueToPlutus` gives the corresponding value type used by plutus from what we have in our framework (viz., `GYValue`).
@@ -367,6 +367,16 @@ takeBets refScript brp previousBetsUtxoRef ownAddr oracleRefInput = do
     <> mustHaveRefInput oracleRefInput
     <> mustBeSignedBy pkh
 ```
+
+## Additional Useful Functions
+
+### `utxosDatums`
+
+Sometimes we want to see all _valid_ UTxOs at our script address. In Cardano, anyone can form UTxO at any address and such a UTxO need not have valid datum as required by our script. `utxosDatums` can be used wither out invalid ones. See it's usage in [Vesting example](./../more-tutorials#vesting).
+
+### `mustMint`
+
+We weren't minting any tokens in our example here and thus didn't make use of `mustMint` skeleton function. It's sample usage is given in [this](https://github.com/geniusyield/atlas/blob/main/src/GeniusYield/Api/TestTokens.hs) example. Which also illustrates how one can mint NFT and shows usage of `someUTxO` function which essentially gives some random UTxO belonging to wallet.
 
 [^1]: This is related to singletons and one can read about it from the "Dependent Types" chapter (the last one) in [Thinking with Types](https://thinkingwithtypes.com/) book.
 
