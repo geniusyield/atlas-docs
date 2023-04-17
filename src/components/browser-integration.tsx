@@ -1,6 +1,5 @@
 import axios from "axios";
 import { bech32 } from "bech32";
-import * as C from "@dcspark/cardano-multiplatform-lib-browser";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useState } from "react";
 
@@ -123,41 +122,6 @@ export const fromHex = (hexString: string): Uint8Array =>
 
 export const toHex = (bytes: Uint8Array): string =>
   bytes.reduce((str: string, byte: number) => str + byte.toString(16).padStart(2, "0"), "");
-
-const signTx = async (api: WalletApi, txCborHex: string): Promise<string> => {
-  console.log("Unsigned transaction CBOR hex is " + txCborHex);
-
-  // parse the base tx into the serialization lib model
-  const transaction = C.Transaction.from_bytes(fromHex(txCborHex));
-  const txWitnessses = transaction.witness_set();
-  const txVKeyWitnesses = txWitnessses.vkeys() ?? C.Vkeywitnesses.new();
-
-  // Get the user to sign the base tx in the browser via wallet.
-  const signedWitnessSet = C.TransactionWitnessSet.from_bytes(
-    fromHex(await api.signTx(toHex(transaction.to_bytes()), true))
-  );
-
-  // Extract the vkey witnesses from the signing witness.
-  const walletVkeyWitnesses = signedWitnessSet.vkeys(); // This won't actually be nullish (CIP 30).
-
-  if (walletVkeyWitnesses) {
-    // Combine the wallet vkey witnesses with any existing vkey witnesses.
-    for (let i = 0; i < walletVkeyWitnesses?.len() ?? 0; i++) {
-      txVKeyWitnesses.add(walletVkeyWitnesses.get(i));
-    }
-  }
-
-  // Overwrite the vkeys in the tx witnesses.
-  txWitnessses.set_vkeys(txVKeyWitnesses);
-
-  // Compose the final tx.
-  const finalTx = C.Transaction.new(transaction.body(), txWitnessses, transaction.auxiliary_data());
-
-  // Convert to cbor hex. You can submit this in the browser with `api.submitTx()` or using the submit endpoint at backend.
-  const finalTxCbor = toHex(finalTx.to_bytes());
-  console.log("Final transaction CBOR is " + finalTxCbor);
-  return finalTxCbor;
-};
 
 const adaLovelace: number = 1000000;
 
@@ -318,9 +282,7 @@ const BrowserFunctions = () => {
 
         const addIdx = data.urspUtxoRefIdx;
 
-        const finalTxCbor = await signTx(api, data.urspTxBodyHex);
-        // txHash = await wallet.submitTx(finalTxCbor);  // alternate
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
+        const { data: submitData } = await axios.post("http://localhost:8081/tx/add-wit-and-submit", { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: (await api.signTx(data.urspTxBodyHex, false)) }, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -393,9 +355,7 @@ const BrowserFunctions = () => {
         const { data } = await axios.post("http://localhost:8081/betref/place", body);
         console.log(data);
         const placeIdx = data.urspUtxoRefIdx;
-        const finalTxCbor = await signTx(api, data.urspTxBodyHex);
-        // txHash = await wallet.submitTx(finalTxCbor);  // alternate
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
+        const { data: submitData } = await axios.post("http://localhost:8081/tx/add-wit-and-submit", { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: (await api.signTx(data.urspTxBodyHex, false)) }, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -483,9 +443,7 @@ const BrowserFunctions = () => {
         const { data } = await axios.post("http://localhost:8081/betref/add-ref-input", body);
         console.log(data);
         const addIdx = data.urspUtxoRefIdx;
-        const finalTxCbor = await signTx(api, data.urspTxBodyHex);
-        // txHash = await wallet.submitTx(finalTxCbor);  // alternate
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
+        const { data: submitData } = await axios.post("http://localhost:8081/tx/add-wit-and-submit", { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: (await api.signTx(data.urspTxBodyHex, false)) }, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -552,9 +510,7 @@ const BrowserFunctions = () => {
         console.log(body);
         const { data } = await axios.post("http://localhost:8081/betref/take", body);
         console.log(data);
-        const finalTxCbor = await signTx(api, data.urspTxBodyHex);
-        // txHash = await wallet.submitTx(finalTxCbor);  // alternate
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
+        const { data: submitData } = await axios.post("http://localhost:8081/tx/add-wit-and-submit", { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: (await api.signTx(data.urspTxBodyHex, false)) }, {
           headers: {
             "Content-Type": "application/json",
           },
