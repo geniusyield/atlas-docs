@@ -282,11 +282,15 @@ const BrowserFunctions = () => {
 
         const addIdx = data.urspUtxoRefIdx;
 
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/add-wit-and-submit", { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: (await api.signTx(data.urspTxBodyHex, false)) }, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const { data: submitData } = await axios.post(
+          "http://localhost:8081/tx/add-wit-and-submit",
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, false) },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         console.log(submitData);
         const addId = submitData.submitTxId;
         setAddTxRef(`${addId}#${addIdx}`);
@@ -355,11 +359,15 @@ const BrowserFunctions = () => {
         const { data } = await axios.post("http://localhost:8081/betref/place", body);
         console.log(data);
         const placeIdx = data.urspUtxoRefIdx;
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/add-wit-and-submit", { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: (await api.signTx(data.urspTxBodyHex, false)) }, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const { data: submitData } = await axios.post(
+          "http://localhost:8081/tx/add-wit-and-submit",
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, false) },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         console.log(submitData);
         const placeId = submitData.submitTxId;
         setPlaceTxRef(`${placeId}#${placeIdx}`);
@@ -443,11 +451,15 @@ const BrowserFunctions = () => {
         const { data } = await axios.post("http://localhost:8081/betref/add-ref-input", body);
         console.log(data);
         const addIdx = data.urspUtxoRefIdx;
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/add-wit-and-submit", { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: (await api.signTx(data.urspTxBodyHex, false)) }, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const { data: submitData } = await axios.post(
+          "http://localhost:8081/tx/add-wit-and-submit",
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, false) },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         console.log(submitData);
         const addId = submitData.submitTxId;
         setAddTxRef(`${addId}#${addIdx}`);
@@ -510,11 +522,15 @@ const BrowserFunctions = () => {
         console.log(body);
         const { data } = await axios.post("http://localhost:8081/betref/take", body);
         console.log(data);
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/add-wit-and-submit", { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: (await api.signTx(data.urspTxBodyHex, false)) }, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const { data: submitData } = await axios.post(
+          "http://localhost:8081/tx/add-wit-and-submit",
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, false) },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         console.log(submitData);
         setTakeTxId(submitData.submitTxId);
       } catch (error) {
