@@ -284,7 +284,7 @@ const BrowserFunctions = () => {
 
         const { data: submitData } = await axios.post(
           "http://localhost:8081/tx/add-wit-and-submit",
-          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, false) },
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
           {
             headers: {
               "Content-Type": "application/json",
@@ -361,7 +361,7 @@ const BrowserFunctions = () => {
         const placeIdx = data.urspUtxoRefIdx;
         const { data: submitData } = await axios.post(
           "http://localhost:8081/tx/add-wit-and-submit",
-          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, false) },
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
           {
             headers: {
               "Content-Type": "application/json",
@@ -453,7 +453,7 @@ const BrowserFunctions = () => {
         const addIdx = data.urspUtxoRefIdx;
         const { data: submitData } = await axios.post(
           "http://localhost:8081/tx/add-wit-and-submit",
-          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, false) },
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
           {
             headers: {
               "Content-Type": "application/json",
@@ -524,7 +524,7 @@ const BrowserFunctions = () => {
         console.log(data);
         const { data: submitData } = await axios.post(
           "http://localhost:8081/tx/add-wit-and-submit",
-          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, false) },
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
           {
             headers: {
               "Content-Type": "application/json",
