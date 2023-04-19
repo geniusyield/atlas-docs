@@ -117,12 +117,6 @@ interface BrpParams {
 
 type SupportedWallets = "nami" | "eternl";
 
-export const fromHex = (hexString: string): Uint8Array =>
-  Uint8Array.from(hexString.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16)));
-
-export const toHex = (bytes: Uint8Array): string =>
-  bytes.reduce((str: string, byte: number) => str + byte.toString(16).padStart(2, "0"), "");
-
 const adaLovelace: number = 1000000;
 
 const BrowserFunctions = () => {
