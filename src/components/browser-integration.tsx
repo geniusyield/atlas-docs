@@ -280,8 +280,6 @@ const BrowserFunctions = () => {
         const { data } = await axios.post("http://localhost:8081/betref/add-ref-script", body);
         console.log(data);
 
-        const addIdx = data.urspUtxoRefIdx;
-
         const { data: submitData } = await axios.post(
           "http://localhost:8081/tx/add-wit-and-submit",
           { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
@@ -292,8 +290,7 @@ const BrowserFunctions = () => {
           }
         );
         console.log(submitData);
-        const addId = submitData.submitTxId;
-        setAddTxRef(`${addId}#${addIdx}`);
+        setAddTxRef(data.urspUtxoRef);
       } catch (error) {
         alert(JSON.stringify(error));
       }
@@ -358,7 +355,6 @@ const BrowserFunctions = () => {
         console.log(body);
         const { data } = await axios.post("http://localhost:8081/betref/place", body);
         console.log(data);
-        const placeIdx = data.urspUtxoRefIdx;
         const { data: submitData } = await axios.post(
           "http://localhost:8081/tx/add-wit-and-submit",
           { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
@@ -369,8 +365,7 @@ const BrowserFunctions = () => {
           }
         );
         console.log(submitData);
-        const placeId = submitData.submitTxId;
-        setPlaceTxRef(`${placeId}#${placeIdx}`);
+        setPlaceTxRef(data.urspUtxoRef);
       } catch (error) {
         alert(JSON.stringify(error));
       }
@@ -450,7 +445,6 @@ const BrowserFunctions = () => {
         console.log(body);
         const { data } = await axios.post("http://localhost:8081/betref/add-ref-input", body);
         console.log(data);
-        const addIdx = data.urspUtxoRefIdx;
         const { data: submitData } = await axios.post(
           "http://localhost:8081/tx/add-wit-and-submit",
           { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
@@ -461,8 +455,7 @@ const BrowserFunctions = () => {
           }
         );
         console.log(submitData);
-        const addId = submitData.submitTxId;
-        setAddTxRef(`${addId}#${addIdx}`);
+        setAddTxRef(data.urspUtxoRef);
       } catch (error) {
         alert(JSON.stringify(error));
       }
