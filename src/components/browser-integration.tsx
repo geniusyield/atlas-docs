@@ -266,23 +266,31 @@ const BrowserFunctions = () => {
 
         console.log("brp params raw", brpParams);
 
-        const api: WalletApi = await window.cardano[selectedWallet].enable();
+        // Obtain access to browser wallet api
+        const api: WalletApi = await window.cardano[selectedWallet].enable();  // Creating a type such as `WalletApi` was entirely optional.
 
+
+        // Create request body for calling our endpoint
         const body = {
           arsUsedAddrs: await api.getUsedAddresses(),
           arsChangeAddr: await api.getChangeAddress(),
           arsCollateral: (await api.experimental.getCollateral())[0],
-          arsPutAddress: convertAddrToRaw(values.putAddress),
-          arsBetParams: processBrpParams(brpParams),
+          arsPutAddress: convertAddrToRaw(values.putAddress),  // implementation detail
+          arsBetParams: processBrpParams(brpParams),  // implementation detail
         };
         console.log(body);
 
+        // Call endpoint
         const { data } = await axios.post("http://localhost:8081/betref/add-ref-script", body);
         console.log(data);
 
+        // Sign & submit
         const { data: submitData } = await axios.post(
           "http://localhost:8081/tx/add-wit-and-submit",
-          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
+          { 
+            awasTxUnsigned: data.urspTxBodyHex,
+            awasTxWit: await api.signTx(data.urspTxBodyHex, true)  // Note that this second argument (corresponding to "partial signing") needs to be `true` as for inputs such as those belonging to script already have their witness and we need to give witness only for inputs belonging to us.
+          },
           {
             headers: {
               "Content-Type": "application/json",

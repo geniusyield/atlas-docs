@@ -5,64 +5,43 @@ import { Callout } from 'nextra-theme-docs'
 
 Now that we have our server running, we need front-end UI to interact with it.
 
-For all of the operations, the approach (_as previously mentioned_) is same which is to first get the unsigned transaction from server, sign it in browser and then submit the signed transaction either directly from wallet or from server's submit endpoint.
-
-So essentially, we only have signing operation happening outside of our server-side code and operating in browser. To perform it, we make use of [Cardano Multiplatform Lib](https://github.com/dcSpark/cardano-multiplatform-lib) and is a boilerplate for all of our operations.
+For all of the operations, the approach (_as previously mentioned_) is same which is to first get the unsigned transaction from server, use browser wallet's `signTx` method to get spending key witness for this transaction, and then use server's endpoint to add witness to this transaction & submit it.
 
 <Callout type="warning" emoji="📃">
 The entire code pertaining to browser operations is available [here](https://github.com/geniusyield/atlas-docs/tree/main/src/components/browser-integration.tsx).
 </Callout>
 
-```typescript
-const signTx = async (api: WalletApi, txCborHex: string): Promise<string> => {
-
-  console.log('Unsigned transaction CBOR hex is ' + txCborHex);
-
-  // Parse the base tx into the serialization lib model.
-  const transaction = C.Transaction.from_bytes(fromHex(txCborHex));
-  const txWitnessses = transaction.witness_set();
-  const txVKeyWitnesses = txWitnessses.vkeys() ?? C.Vkeywitnesses.new();
-
-  // Get the user to sign the base tx in the browser via wallet.
-  const signedWitnessSet = C.TransactionWitnessSet.from_bytes(
-    fromHex(await api.signTx(toHex(transaction.to_bytes()), true))
-  );
-
-  // Extract the vkey witnesses from the signing witness.
-  const walletVkeyWitnesses = signedWitnessSet.vkeys(); // This won't actually be nullish (CIP 30).
-
-  // Combine the wallet vkey witnesses with any existing vkey witnesses.
-  for (let i = 0; i < walletVkeyWitnesses?.len() ?? 0; i++) {
-    txVKeyWitnesses.add(walletVkeyWitnesses.get(i));
-  }
-
-  // Overwrite the vkeys in the tx witnesses.
-  txWitnessses.set_vkeys(txVKeyWitnesses);
-
-  // Compose the final tx.
-  const finalTx = C.Transaction.new(transaction.body(), txWitnessses, transaction.auxiliary_data());
-
-  // Convert to cbor hex. You can submit this in the browser with `api.submitTx()` or using the submit endpoint at backend.
-  const finalTxCbor = toHex(finalTx.to_bytes());
-  console.log('Final transaction CBOR is ' + finalTxCbor);
-  return finalTxCbor;
-}
-```
-
-Where the `api` above was simply obtained from browser like so `const api: WalletApi = await window.cardano[selectedWallet].enable();{:ts}`. Creating a type such as `WalletApi` was entirely optional.
-
-An outline of this whole process is given below (actual `body` construction for this illustrative `add-ref-script` request can be seen in the given code):
+An outline of this whole process is given below, illustrated via `add-ref-script` endpoint:
 
 ```typescript
-const {data} = await axios.post('http://localhost:8081/betref/add-ref-script', body)
-const finalTxCbor = await signTx(api, data.urspTxBodyHex)
-// txHash = await wallet.submitTx(finalTxCbor);  // alternate
-const {data: submitData} = await axios.post('http://localhost:8081/tx/submit', finalTxCbor, {
-  headers: {
-    'Content-Type': 'application/json'  // was inferred in previous `post`
+// Obtain access to browser wallet api
+const api: WalletApi = await window.cardano[selectedWallet].enable();  // Creating a type such as `WalletApi` was entirely optional.
+
+// Create request body for calling our endpoint
+const body = {
+  arsUsedAddrs: await api.getUsedAddresses(),
+  arsChangeAddr: await api.getChangeAddress(),
+  arsCollateral: (await api.experimental.getCollateral())[0],
+  arsPutAddress: convertAddrToRaw(values.putAddress),  // implementation detail
+  arsBetParams: processBrpParams(brpParams),  // implementation detail
+};
+
+// Call endpoint
+const { data } = await axios.post("http://localhost:8081/betref/add-ref-script", body);
+
+// Sign & submit
+const { data: submitData } = await axios.post(
+  "http://localhost:8081/tx/add-wit-and-submit",
+  { 
+    awasTxUnsigned: data.urspTxBodyHex,
+    awasTxWit: await api.signTx(data.urspTxBodyHex, true)  // Note that this second argument (corresponding to "partial signing") needs to be `true` as for inputs such as those belonging to script already have their witness and we need to give witness only for inputs belonging to us.
+  },
+  {
+    headers: {
+      "Content-Type": "application/json",
+    },
   }
-})
-console.log(submitData)
+);
 ```
 
 What follows is the demo for all of the operations we defined.
