@@ -262,12 +262,15 @@ const BrowserFunctions = () => {
 
         // Obtain access to browser wallet api
         const api: WalletApi = await window.cardano[selectedWallet].enable(); // Creating a type such as `WalletApi` was entirely optional.
+        
+        // Obtaining collaterals as set by browser.
+        const colls = await api.experimental.getCollateral()
 
         // Create request body for calling our endpoint
         const body = {
           arsUsedAddrs: await api.getUsedAddresses(),
           arsChangeAddr: await api.getChangeAddress(),
-          arsCollateral: (await api.experimental.getCollateral())[0],
+          ...(0 in colls && {arsCollateral: colls[0]}),
           arsPutAddress: convertAddrToRaw(values.putAddress), // implementation detail
           arsBetParams: processBrpParams(brpParams), // implementation detail
         };
@@ -341,10 +344,11 @@ const BrowserFunctions = () => {
         if (brpParams === undefined) throw "Not yet given script parameters";
         console.log("brp params raw", brpParams);
         const api: WalletApi = await window.cardano[selectedWallet].enable();
+        const colls = await api.experimental.getCollateral()
         const body = {
           pbrUsedAddrs: await api.getUsedAddresses(),
           pbrChangeAddr: await api.getChangeAddress(),
-          pbrCollateral: (await api.experimental.getCollateral())[0],
+          ...(0 in colls && {pbrCollateral: colls[0]}),
           pbrBetAmt: {
             lovelace: values.betAmt * adaLovelace,
           },
@@ -436,10 +440,11 @@ const BrowserFunctions = () => {
         if (brpParams === undefined) throw "Not yet given script parameters";
         console.log("brp params raw", brpParams);
         const api: WalletApi = await window.cardano[selectedWallet].enable();
+        const colls = await api.experimental.getCollateral()
         const body = {
           ariUsedAddrs: await api.getUsedAddresses(),
           ariChangeAddr: await api.getChangeAddress(),
-          ariCollateral: (await api.experimental.getCollateral())[0],
+          ...(0 in colls && {ariCollateral: colls[0]}),
           ariPutAddress: convertAddrToRaw(brpParams.brpOracleAddress),
           ariBetAnswer: values.betAnswer,
         };
@@ -504,10 +509,11 @@ const BrowserFunctions = () => {
         if (brpParams === undefined) throw "Not yet given script parameters";
         console.log("brp params raw", brpParams);
         const api: WalletApi = await window.cardano[selectedWallet].enable();
+        const colls = await api.experimental.getCollateral()
         const body = {
           tbrUsedAddrs: await api.getUsedAddresses(),
           tbrChangeAddr: await api.getChangeAddress(),
-          tbrCollateral: (await api.experimental.getCollateral())[0],
+          ...(0 in colls && {tbrCollateral: colls[0]}),
           tbrBetParams: processBrpParams(brpParams),
           tbrOracleRefInputRef: values.oracleRefInputRef,
           tbrPrevBetRef: values.prevBetRef,
