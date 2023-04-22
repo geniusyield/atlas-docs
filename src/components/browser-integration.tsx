@@ -263,7 +263,7 @@ const BrowserFunctions = () => {
         // Obtain access to browser wallet api
         const api: WalletApi = await window.cardano[selectedWallet].enable(); // Creating a type such as `WalletApi` was entirely optional.
 
-        // Obtaining collaterals as set by browser.
+        // Obtaining UTxOs to be used collaterals as given by browser wallet.
         const colls = await api.experimental.getCollateral();
 
         // Create request body for calling our endpoint
