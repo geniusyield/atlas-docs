@@ -5,7 +5,11 @@ import { Tab, Tabs } from 'nextra-theme-docs'
 
 Now that we are confident with our smart contract, it's time that we make it accessible to end user.
 
-The approach here would be that front-end will first ask us for the unsigned transaction body by giving us the relevant parameters needed to construct it. Then front-end will get this transaction body signed in browser to obtain signed transaction body which it will then submit either via browser wallet's endpoint or via calling the submit endpoint which we will define here.
+The approach here would be 
+
+1. Front-end asks to construct transaction body for the concerned operation.
+2. It then receives this transaction body, which is complete besides missing for signature for spending inputs belonging to browser wallet. It calls wallet api's `signTx` method upon this body to get this signature (key witness).
+3. Frontend now passes this unsigned transaction body along with the witness it received to our backend endpoint which will add this witness to the transaction body, making it complete and would then submit it.
 
 We'll use [Servant](https://docs.servant.dev/en/stable/) to create our endpoints and one may understand it by following their easy to understand tutorial [here](https://docs.servant.dev/en/stable/tutorial/index.html).
 
@@ -107,7 +111,9 @@ We then see the use of an interesting function `withCfgProviders`. It's type is 
 Entire code for it is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/server-lib/BetRef/Api/Context.hs)
 </Callout>
 
-Our endpoints would need an information for our provider, thus we have created the type for it, called `Ctx`. It's usage is made clear by function defined next, `runQuery` which in essence correspond to `ctxRunC` we saw in section on [Integration Tests](./integration-tests.mdx). Reasoning for `runTxI`, `runTxF` & `runTxWithStrategyF` follows similarly.
+Our endpoints would need an information for our provider, thus we have created the type for it, called `Ctx`. It's usage is made clear by function defined next, `runQuery` which in essence correspond to `ctxRunC` we saw in section on [Integration Tests](./integration-tests.mdx). Reasoning for `runTxI` & `runTxF` follows similarly.
+
+Note about our handling of collateral: Browser wallets usually have the option to set for collateral, in such a case wallets would create an UTxO specifically to be used as collateral and such an UTxO will be reserved, i.e., wallet won't be spending it. [CIP 40](https://cips.cardano.org/cips/cip40/) changed the properties related to collateral and therefore we can safely take even that UTxO as collateral which has large amounts of ada and it could also contain multiple assets. Therefore if there is no collateral set by browser wallet, framework is capable of choosing suitable UTxO as collateral (and also sets for return collateral & total collateral fields appropriately) and in that case it is also free to spend it, if required by transaction builder. But if however there is a 5-ada collateral set by wallet, then framework would use it as collateral and would also reserve it, i.e., it won't pick to spend it unless explicitly mentioned by transaction skeleton. Also note that, we'll use browser wallet's `getCollateral()` method to get for collateral. This method usually returns a list of ada-only UTxOs in wallet within a specific range (like in case of Nami, it is those with ada less than or equal to 50). We would send first element of this list (if exists) to backend and framework would check if the value contained in this UTxO is exactly 5 ada or not (like Nami's `getCollateral` method returns only a singleton list if collateral is set in wallet), if not, framework would ignore this (i.e., would not reserve for it) and would itself pick suitable UTxO as collateral. If however you want this to be reserved (& of course used as collateral) regardless of it's value, see the comment in call to `runGYTxMonadNodeF` in `runTxF` function.
 
 ```haskell
 -- | Our Context.
@@ -125,9 +131,9 @@ runQuery ctx q = do
 
 -- | Wraps our skeleton under `Identity` and calls `runTxF`.
 runTxI :: Ctx
-       -> [GYAddress]     -- ^ user's used addresses
-       -> GYAddress       -- ^ user's change address
-       -> GYTxOutRefCbor  -- ^ user's collateral
+       -> [GYAddress]           -- ^ User's used addresses.
+       -> GYAddress             -- ^ User's change address.
+       -> Maybe GYTxOutRefCbor  -- ^ Browser wallet's reserved collateral (if set).
        -> GYTxMonadNode (GYTxSkeleton v)
        -> IO GYTxBody
 runTxI = coerce (runTxF @Identity)
@@ -135,26 +141,21 @@ runTxI = coerce (runTxF @Identity)
 -- | Tries to build for given skeletons wrapped under traversable structure.
 runTxF :: Traversable t
        => Ctx
-       -> [GYAddress]     -- ^ user's used addresses
-       -> GYAddress       -- ^ user's change address
-       -> GYTxOutRefCbor  -- ^ user's collateral
+       -> [GYAddress]           -- ^ User's used addresses.
+       -> GYAddress             -- ^ User's change address.
+       -> Maybe GYTxOutRefCbor  -- ^ Browser wallet's reserved collateral (if set).
        -> GYTxMonadNode (t (GYTxSkeleton v))
        -> IO (t GYTxBody)
-runTxF = runTxWithStrategyF GYRandomImproveMultiAsset
-
--- | Create 'TxBody' from a 'GYTxSkeleton', with the specified coin selection strategy.
-runTxWithStrategyF :: Traversable t
-                   => GYCoinSelectionStrategy
-                   -> Ctx
-                   -> [GYAddress]
-                   -> GYAddress
-                   -> GYTxOutRefCbor
-                   -> GYTxMonadNode (t (GYTxSkeleton v))
-                   -> IO (t GYTxBody)
-runTxWithStrategyF cstrat ctx addrs addr collateral skeleton  = do
+runTxF ctx addrs addr collateral skeleton  = do
   let nid       = cfgNetworkId $ ctxCoreCfg ctx
       providers = ctxProviders ctx
-  runGYTxMonadNodeF cstrat nid providers addrs addr (getTxOutRefHex collateral) skeleton
+  runGYTxMonadNodeF GYRandomImproveMultiAsset nid providers addrs addr
+    (collateral >>=
+      (\c -> Just (getTxOutRefHex c,
+                   True  -- Make this as `False` to not do 5-ada-only check for value in this given UTxO to be used as collateral.
+                  )
+      )
+    ) skeleton
 ```
 
 ## Submit Endpoint
@@ -163,9 +164,11 @@ runTxWithStrategyF cstrat ctx addrs addr collateral skeleton  = do
 Entire code for it is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/server-lib/BetRef/Api/Tx.hs)
 </Callout>
 
-We'll soon see endpoints which will return for unsigned transaction to the browser but assuming that we already have a signed transaction CBOR, let's see how we can define an endpoint to submit it using our provider.
+We'll soon see endpoints which will return for unsigned transaction to the browser but assuming that we already have a unsigned transaction CBOR & the missing signature, let's see how we can define an endpoint which will add this missing key witness to the transaction body and would then submit it using our provider.
 
-Focussing at `handleSubmitTx` function, we see that we first parse the obtained CBOR text in our `GYTx` type, then we simply call the submit operation for our providor. Then we send back the response letting our front-end know about the transaction fees (which though it would already know when having performed the signing operation, but other fields could also be added here depending upon use case) and the transactoin id.
+Input to this endpoint is a type `AddWitAndSubmitParams` encapsulating our unsigned transaction body & missing key witness.
+
+Then we have our function `handleAddWitAndSubmitTx` which adds the witness to the transaction making it complete and then it submits it. The response generated here is of type `SubmitTxResponse` and you can modify the same to include other fields if required.
 
 ```haskell
 -- | Return type of API when submitting a transaction.
@@ -173,6 +176,12 @@ data SubmitTxResponse = SubmitTxResponse
                           { submitTxFee :: !Integer
                           , submitTxId  :: !GYTxId
                           } deriving (Show, Generic, ToJSON, Swagger.ToSchema)
+
+-- | Input parameters to add for reference script.
+data AddWitAndSubmitParams = AddWitAndSubmitParams
+  { awasTxUnsigned :: !GYTx
+  , awasTxWit      :: !GYTxWitness
+  } deriving (Generic, FromJSON, Swagger.ToSchema)
 
 -- | Construct `SubmitTxResponse` return type from the given signed transaction body.
 txBodySubmitTxResponse :: GYTxBody -> SubmitTxResponse
@@ -183,17 +192,20 @@ txBodySubmitTxResponse txBody = SubmitTxResponse
 
 -- | Type for our Servant API.
 type TxAPI =
-  "submit" :> ReqBody '[JSON] GYTx :> Post '[JSON] SubmitTxResponse
+      "add-wit-and-submit"
+    :> ReqBody '[JSON] AddWitAndSubmitParams
+    :> Post '[JSON] SubmitTxResponse
 
 -- | Serving our API.
 handleTx :: Ctx -> ServerT TxAPI IO
-handleTx = handleSubmitTx
+handleTx = handleAddWitAndSubmitTx
 
--- | Handle for submit operation.
-handleSubmitTx :: Ctx -> GYTx -> IO SubmitTxResponse
-handleSubmitTx ctx tx = do
-    void (gySubmitTx (ctxProviders ctx) tx)
-    return $ txBodySubmitTxResponse (getTxBody tx)
+-- | Handle for adding key witness to the unsigned transaction & then submit it.
+handleAddWitAndSubmitTx :: Ctx -> AddWitAndSubmitParams -> IO SubmitTxResponse
+handleAddWitAndSubmitTx ctx AddWitAndSubmitParams{..} = do
+  let txBody = getTxBody awasTxUnsigned
+  void $ gySubmitTx (ctxProviders ctx) $ makeSignedTransaction awasTxWit txBody
+  return $ txBodySubmitTxResponse txBody
 ```
 
 ### Transaction Building Endpoints
@@ -215,7 +227,7 @@ data BetRefParams = BetRefParams
   , brpBetUntil      :: !GYTime
   , brpBetReveal     :: !GYTime
   , brpBetStep       :: !GYValue
-  } deriving(Show, Generic, FromJSON, Swagger.ToSchema)
+  } deriving (Show, Generic, FromJSON, Swagger.ToSchema)
 
 -- | Convert the above `BetRefParams` with corresponding representation defined in our Plutus validator script.
 betParamsToScript :: BetRefParams -> Script.BetRefParams
@@ -230,7 +242,7 @@ betParamsToScript brp = Script.BetRefParams
 data PlaceBetRefParams = PlaceBetRefParams
   { pbrUsedAddrs  :: ![GYAddress]
   , pbrChangeAddr :: !GYAddress
-  , pbrCollateral :: !GYTxOutRefCbor
+  , pbrCollateral :: !(Maybe GYTxOutRefCbor)
   , pbrBetParams  :: !BetRefParams
   , pbrBetGuess   :: !Integer
   , pbrBetAmt     :: !GYValue
@@ -242,7 +254,7 @@ data PlaceBetRefParams = PlaceBetRefParams
 data TakeBetRefParams = TakeBetRefParams
   { tbrUsedAddrs         :: ![GYAddress]
   , tbrChangeAddr        :: !GYAddress
-  , tbrCollateral        :: !GYTxOutRefCbor
+  , tbrCollateral        :: !(Maybe GYTxOutRefCbor)
   , tbrBetParams         :: !BetRefParams
   , tbrRefScript         :: !GYTxOutRef
   , tbrPrevBetRef        :: !GYTxOutRef
@@ -253,7 +265,7 @@ data TakeBetRefParams = TakeBetRefParams
 data AddRefScriptParams = AddRefScriptParams
   { arsUsedAddrs  :: ![GYAddress]
   , arsChangeAddr :: !GYAddress
-  , arsCollateral :: !GYTxOutRefCbor
+  , arsCollateral :: !(Maybe GYTxOutRefCbor)
   , arsPutAddress :: !GYAddress
   , arsBetParams  :: !BetRefParams
   } deriving (Show, Generic, FromJSON, Swagger.ToSchema)
@@ -262,24 +274,24 @@ data AddRefScriptParams = AddRefScriptParams
 data AddRefInputParams = AddRefInputParams
   { ariUsedAddrs  :: ![GYAddress]
   , ariChangeAddr :: !GYAddress
-  , ariCollateral :: !GYTxOutRefCbor
+  , ariCollateral :: !(Maybe GYTxOutRefCbor)
   , ariPutAddress :: !GYAddress
   , ariBetAnswer  :: !Integer
   } deriving (Show, Generic, FromJSON, Swagger.ToSchema)
 
 -- | Return type for our API endpoints defined here.
 data UnsignedTxResponse = UnsignedTxResponse
-  { urspTxBodyHex  :: !T.Text           -- ^ Unsigned transaction cbor.
-  , urspTxFee      :: !(Maybe Integer)  -- ^ Tx fees.
-  , urspUtxoRefIdx :: !(Maybe Word)     -- ^ Some operations might need to show for relevant UTxO generated, this index will let UI know of it. Note that Transaction ID would change after getting signed.
+  { urspTxBodyHex :: !T.Text              -- ^ Unsigned transaction cbor.
+  , urspTxFee     :: !(Maybe Integer)     -- ^ Tx fees.
+  , urspUtxoRef   :: !(Maybe GYTxOutRef)  -- ^ Some operations might need to show for relevant UTxO generated.
   } deriving (Show, Generic, FromJSON, ToJSON, Swagger.ToSchema)
 
 -- | Construct `UnsignedTxResponse` return type for our endpoint given the transaction body & relevant index for UTxO (if such exists).
-unSignedTxWithFee :: GYTxBody -> Maybe Word -> UnsignedTxResponse
-unSignedTxWithFee txBody mUtxoRefIdx = UnsignedTxResponse
+unSignedTxWithFee :: GYTxBody -> Maybe GYTxOutRef -> UnsignedTxResponse
+unSignedTxWithFee txBody mUtxoRef = UnsignedTxResponse
   { urspTxBodyHex  = T.pack $ txToHex $ unsignedTx txBody
   , urspTxFee      = Just $ txBodyFee txBody
-  , urspUtxoRefIdx = mUtxoRefIdx
+  , urspUtxoRef    = mUtxoRef
   }
 
 -- | Type for our Servant API.
@@ -314,7 +326,7 @@ handlePlaceBet ctx PlaceBetRefParams{..} = do
   placeUtxoRef <- case find (\utxo -> utxoAddress utxo == validatorAddress) $ utxosToList $ txBodyUTxOs txBody of
         Nothing -> fail "Shouldn't happen: No reference for placed bet in body"
         Just utxo -> pure $ utxoRef utxo
-  pure $ unSignedTxWithFee txBody (Just $ snd $ txOutRefToTuple placeUtxoRef)
+  pure $ unSignedTxWithFee txBody $ Just placeUtxoRef
 
 -- | Handle for take bets operation.
 handleTakeBet :: Ctx -> TakeBetRefParams -> IO UnsignedTxResponse
@@ -333,7 +345,7 @@ handleAddRefScript  ctx AddRefScriptParams{..} = do
   outRef <- case Map.lookup (Some (validatorToScript validator)) refs of
                  Nothing  -> fail "Shouldn't happen: No reference for added Script in body"
                  Just ref -> return ref
-  pure $ unSignedTxWithFee txBody (Just $ snd $ txOutRefToTuple outRef)
+  pure $ unSignedTxWithFee txBody $ Just outRef
 
 -- | Handle for adding reference input.
 handleOracleRefInput :: Ctx -> AddRefInputParams  -> IO UnsignedTxResponse
@@ -352,7 +364,7 @@ handleOracleRefInput  ctx AddRefInputParams{..} = do
         ) utxos
   case mRefInputUtxo of
     Nothing               -> fail "Shouldn't happen: Couldn't find the desired UTxO in Tx outputs"
-    Just GYUTxO {utxoRef} -> pure $ unSignedTxWithFee txBody (Just $ snd $ txOutRefToTuple utxoRef)
+    Just GYUTxO {utxoRef} -> pure $ unSignedTxWithFee txBody $ Just utxoRef
 ```
 
 ### Wrap-Up
