@@ -14,7 +14,6 @@
     "prettier": "prettier --write \"**/*.tsx\""
   },
   "dependencies": {
-    "@dcspark/cardano-multiplatform-lib-browser": "^3.1.2",
     "@emotion/react": "^11.10.0",
     "@emotion/styled": "^11.10.0",
     "@mui/material": "^5.10.0",
