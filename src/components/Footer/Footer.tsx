@@ -16,7 +16,7 @@ import {
 const socials = [
   { id: 1, icon: <TwitterIcon />, href: "https://twitter.com/GeniusyieldO" },
   { id: 2, icon: <MediumIcon />, href: "https://geniusyield.medium.com/" },
-  { id: 3, icon: <DiscordIcon />, href: "https://discord.com/invite/D8HNJ3zhwH" },
+  { id: 3, icon: <DiscordIcon />, href: "https://discord.gg/TNHf4fs626" },
   { id: 5, icon: <TelegramIcon />, href: "https://t.me/geniusyield_official" },
   { id: 6, icon: <YoutubeIcon />, href: "https://www.youtube.com/channel/UC0Lw_flS1WokWYH9ZHIQv2g/featured" },
 ];
