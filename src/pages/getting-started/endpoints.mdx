@@ -7,14 +7,14 @@ Now that we are confident with our smart contract, it's time that we make it acc
 
 The approach here would be 
 
-1. Front-end asks to construct transaction body for the concerned operation.
-2. It then receives this transaction body, which is complete besides missing for signature for spending inputs belonging to browser wallet. It calls wallet api's `signTx` method upon this body to get this signature (key witness).
-3. Frontend now passes this unsigned transaction body along with the witness it received to our backend endpoint which will add this witness to the transaction body, making it complete and would then submit it.
+1. Front-end asks to construct transaction for the concerned operation.
+2. It then receives this transaction, which is complete besides missing for signature for spending inputs belonging to browser wallet. It calls wallet api's `signTx` method upon this body to get this signature (key witness).
+3. Frontend now passes this unsigned transaction along with the witness it received to our backend endpoint which will add this witness to the transaction, making it complete and would then submit it.
 
 We'll use [Servant](https://docs.servant.dev/en/stable/) to create our endpoints and one may understand it by following their easy to understand tutorial [here](https://docs.servant.dev/en/stable/tutorial/index.html).
 
 <Callout>
-Do note that we can also sign the transactions in server using the `signTx` function defined in [`TxBody.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/TxBody.hs)
+Do note that we can also sign the transactions in server using the `signTx` function defined in [`GeniusYield.Types.TxBody`](https://haddock.atlas-app.io/GeniusYield-Types-TxBody.html) module.
 </Callout>
 
 ## Providing Data Provider
@@ -26,8 +26,25 @@ As noted earlier, building transaction bodies require gathering suitable informa
 Currently Atlas supports the following providers (& it would be highly appreciated if community enriches this by contributing to [Atlas](https://github.com/geniusyield/atlas/tree/main)):
 
 * [Maestro](https://www.gomaestro.org/).
-* Locally ran node.
-* Cardano DB Sync (but only for private network tests).
+* Locally ran node along with [Kupo](https://cardanosolutions.github.io/kupo/).
+* [Blockfrost](https://blockfrost.io/).
+
+<Callout type="warning">
+  Following API functions don't have an optimal implementation for Blockfrost:
+
+  * `utxosAtTxOutRefs`
+  * `utxosAtTxOutRefsWithDatums`
+  * `utxosAtAddressWithDatums`
+  * `utxosAtAddresses`
+  * `utxosAtAddressesWithDatums`
+  * `utxosAtPaymentCredentialWithDatums`
+  * `utxosAtPaymentCredentials`
+  * `utxosAtPaymentCredentialsWithDatums`
+
+  In general, we recommend either Maestro or local node with Kupo as provider.
+</Callout>
+
+
 
 To provide information about the provider, we will create a `config.json` file whose contents could be as follows:
 
@@ -35,35 +52,42 @@ To provide information about the provider, we will create a `config.json` file w
   We have given a sample `config.json` file [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/config.sample.json).
 </Callout>
 
-<Tabs items={['Maestro', 'Local Node']}>
+```json
+{
+  "coreProvider": ...,
+  "networkId": "preprod",
+  "logging": [{ "type": { "tag": "stderr" }, "severity": "Debug", "verbosity": "V2" }]
+}
+```
+
+where `coreProvider` field can have one of following possible values:
+
+<Tabs items={['Maestro', 'Local Node with Kupo', 'Blockfrost']}>
   <Tab>
     ```json
-    {
-      "coreProvider": { "maestroToken": "<Your-API-Key>" },
-      "networkId": "testnet-preprod",
-      "logging": [{ "type": { "tag": "stderr" }, "severity": "Debug", "verbosity": "V2" }],
-      "utxoCacheEnable": false
-    }
+    "coreProvider": { "maestroToken": "<Your-API-Key>", "turboSubmit": false },
     ```
   </Tab>
   <Tab>
     ```json
-    {
-      "coreProvider": { "socketPath": "<Path-To-node.socket-File>", "maestroToken": "<Your-API-Key>" },
-      "networkId": "testnet-preprod",
-      "logging": [{ "type": { "tag": "stderr" }, "severity": "Debug", "verbosity": "V2" }],
-      "utxoCacheEnable": false
-    }
+    "coreProvider": { "socketPath": "path-to-node-socket", "kupoUrl": "http://localhost:1443" },
+    ```
+  </Tab>
+  <Tab>
+    ```json
+    "coreProvider": { "blockfrostKey": "<Your-API-Key>" },
     ```
   </Tab>
 </Tabs>
 
-Here is the explaination for each of the JSON keys above:
+Here is the explanation for each of the JSON keys above:
 
-* **`coreProvider`**: This field is the differentiating factor between different providers. Above we have given how it would look like for locally ran node & Maestro. Note that local node option still requires Maestro key for `lookupDatum` query.
-* **`networkId`**: Specifies your network and must be one of `mainnet`, `testnet-preprod`, `testnet-preview`, `testnet` (for legacy testnet) & `privnet` (for local private network).
-* **`logging`**: It's a list of [scribes](https://hackage.haskell.org/package/katip-0.8.7.3/docs/Katip.html#t:Scribe) to register. Its parameters (like `severity`, `verbosity`) and its general usage can be understood by going over their official haddock documentation [here](https://hackage.haskell.org/package/katip-0.8.7.2/docs/Katip.html). Katip is also explained in [this](https://link.springer.com/book/10.1007/978-1-4842-3739-7) book on web development in Haskell.
-* **`utxoCacheEnable`**: Enabling this boolean will enable cache (using [`Data.Cache`](https://hackage.haskell.org/package/cache-0.1.3.0/docs/Data-Cache.html)) whereby queries related to fetching UTxOs won't generate call to provider if the entry exists in cache (& has not yet expired).
+* **`coreProvider`**: This field is the differentiating factor between different providers.
+  * For Maestro, `maestroToken` holds the api key and `turboSubmit` field dictates whether the transactions are to be submitted via their [turbo submit](https://docs.gomaestro.org/Cardano/Transaction-Manager/tx-manager-turbo-submit) endpoint.
+  * For Local Node with Kupo provider, `socketPath` is the path towards node socket (usually named `node.socket`) file and `kupoUrl` is the url where endpoints are made available by Kupo, it is usually `http://localhost:1443`.
+  * For Blockfrost, `blockfrostKey` holds the required api key.
+* **`networkId`**: Specifies your network and must be one of `mainnet`, `preprod`, `preview`, `testnet` (for legacy testnet) & `privnet` (for local private network).
+* **`logging`**: It's a list of [scribes](https://hackage.haskell.org/package/katip-0.8.7.3/docs/Katip.html#t:Scribe) to register. Its parameters (like `severity`, `verbosity`) and its general usage can be understood by going over their official haddock documentation [here](https://hackage.haskell.org/package/katip-0.8.7.2/docs/Katip.html). Katip is also explained in [this](https://link.springer.com/book/10.1007/978-1-4842-3739-7) book on web development in Haskell. Please have a look at haddock for `FromJSON` and `ToJSON` instances of [`GYLogScriptType`](https://haddock.atlas-app.io/GeniusYield-Types-Logging.html#t:GYLogScribeType) to see sample usage.
 
 ### Parsing Given Configuration
 

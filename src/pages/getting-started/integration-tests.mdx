@@ -110,7 +110,7 @@ Here is the code (& explaination follows after it):
 
 The first line `testCaseSteps "test description" $ \info -> withSetup setup info $ \ctx -> do` can be seen as a boilerplate for all of your tests.
 
-`ctx` denotes the so called context (of type `Ctx`) and contains information about our users, additional tokens, etc. It is defined in [`Ctx.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Test/Privnet/Ctx.hs) file and it is essential to go over that file if you intend to write these tests.
+`ctx` denotes the so called context (of type `Ctx`) and contains information about our users, additional tokens, etc. It is defined in [`GeniusYield.Test.Privnet.Ctx`](https://haddock.atlas-app.io/GeniusYield-Test-Privnet-Ctx.html) module and it is essential to go over that module if you intend to write these tests.
 
 Variable `info` is used to log messages and you can use it in your test's `do` block like `info $ printf "Hello from %s" "Atlas"`
 
@@ -199,7 +199,7 @@ Now let's see another test where we slightly modify the last step (all the rest 
   assertThrown isTxBodyErrorAutoBalance $ ctxRunI ctx (ctxUser3 ctx) $ takeBets refScript brp lockedORef (userAddr (ctxUser3 ctx)) refInputORef
 ```
 
-Notice that we try catching the error using `assertThrown` function. Here `isTxBodyErrorAutoBalance` is defined as (both this & `assertThrown` have their definitions in [`Asserts.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Test/Privnet/Asserts.hs) file):
+Notice that we try catching the error using `assertThrown` function. Here `isTxBodyErrorAutoBalance` is defined as (both this & `assertThrown` have their definitions in [`GeniusYield.Test.Privnet.Asserts`](https://haddock.atlas-app.io/GeniusYield-Test-Privnet-Asserts.html) module):
 
 ```haskell
 isTxBodyErrorAutoBalance :: BuildTxException -> Bool
