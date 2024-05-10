@@ -11,14 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18.x
+      - uses: actions/setup-node@v4
       - name: Install dependencies
-        run: |
-          yarn install
-          yarn export
+        run: yarn install && yarn export
       - name: Deploy
         if: github.ref_name == 'main'
         run: |
