@@ -18,6 +18,10 @@ Thus, we only specify at high-level what we want. This would become clear as we 
 
 Entire code for these operations is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/server-lib/BetRef/Api/Operations.hs).
 
+<Callout type="info">
+  When working with Atlas inside your project, since Atlas isn't on Hackage, you'll need to [specify](https://cabal.readthedocs.io/en/stable/cabal-project.html#specifying-packages-from-remote-version-control-locations) it as a remote package inside your `cabal.project`. Moreover, since Atlas itself relies on dependencies which are outside Hackage, those would need to be specified too. To streamline this, it's best to use the [`cabal.project`](https://github.com/geniusyield/atlas-examples/blob/main/cabal.project) mentioned in `atlas-examples` repository where you would just need to modify `packages:` stanza depending upon your project. 
+</Callout>
+
 ## Operation _1_: Generating address for our Smart Contract
 
 ### Generating Validator for our Smart Contract
@@ -26,18 +30,26 @@ Following the usual drill, we generate the Validator given contract parameters (
 
 ```haskell filename="Compiled.hs"
 -- | Generates validator given params.
-betRefValidator :: BetRefParams -> Validator
-betRefValidator betRefParams = mkValidatorScript $
-    $$(PlutusTx.compile [|| mkBetRefValidator||]) `PlutusTx.applyCode` PlutusTx.liftCode betRefParams
+betRefValidator :: BetRefParams -> PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())
+betRefValidator betRefParams =
+    $$(PlutusTx.compile [|| mkBetRefValidator||]) `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion100 betRefParams
 ```
 
-What we have obtained is of type `Validator`, defined in `plutus-ledger-api`, which is nothing but a wrapper around `Script` type defined in same.
+Note that since spending validator takes in a datum, redeemer and a script context and thus it's type signature, `PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())` takes three `PlutusTx.BuiltinData`. We encapsulate it with `GYValidator` inside framework.
 
-Likewise, we have our own types, `GYValidator` (similarly `GYMintingPolicy` for minting policy scripts) & `GYScript` (defined in [`Script.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs)) to represent these in our framework.
+Likewise minting policies and stake validators take in only redeemer and script context, thus having type `PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())` which is represented in Atlas as `GYMintingPolicy` and `GYStakeValidator` respectively.
 
-The file mentioned [`Script.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) contains a lot of helper utilities such as `validatorFromPlutus` which takes in Plutus's `Validator` type to give out `GYValidator`. Though there has been slight abuse in mentioning type here as what is actually given out is `GYValidator v` where type variable `v` is of _kind_ `PlutusVersion` which is defined in file [`PlutusVersion.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/PlutusVersion.hs) which you can understand as being here to denote plutus version for our validator script[^1].
+`GYValidator`, `GYMintingPolicy` and `GYStakeValidator` are nothing but `newtype` wrapper around `GYScript` where `GYScript` holds information of raw serialized Plutus script, [version of Plutus ledger language](https://plutus.readthedocs.io/en/latest/explanations/language-versions.html#what-are-plutus-language-versions) and script's hash.
 
-If we look at the type signature of `validatorFromPlutus`, we see: `validatorFromPlutus :: forall v. SingPlutusVersionI v => Plutus.Validator -> GYValidator v` where for the time being we can ignore the description of the typeclass `SingPlutusVersionI`[^1] besides noting the fact that only types (currently `'PlutusV1` & `'PlutusV2`) of kind `PlutusVersion` have an instance for it. So here, our function `validatorFromPlutus` works for all type variable `v` which have an instance of `SingPlutusVersionI` but there is no way to learn what this `v` is based solely on the input `Plutus.Validator` and therefore, caller must specify it, either by providing type signature (of callee or caller due to type inference) or by using [visible type application](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/type_applications.html). Our first operation does make use of it but before looking at it, we need to understand about `GYTxQueryMonad`.
+Thus encapsulating `GYScript` under say `GYValidator` gives us additional context regarding script's purpose. 
+
+<Callout type="info">
+  Checkout [`GeniusYield.Types.Script`](https://haddock.atlas-app.io/GeniusYield-Types-Script.html) module for definitions of these types and corresponding helper utilities.
+</Callout>
+
+The mentioned `GeniusYield.Types.Script` module contains a lot of helper utilities such as `validatorFromPlutus` which takes in Plutus's `PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())` type to give out `GYValidator`. Though there has been slight abuse in mentioning type here as what is actually given out is `GYValidator v` where type variable `v` is of _kind_ `PlutusVersion` which is defined in [`GeniusYield.Types.PlutusVersion`](https://haddock.atlas-app.io/GeniusYield-Types-PlutusVersion.html) module and is used to tag plutus ledger version of our validator script[^1].
+
+If we look at the type signature of `validatorFromPlutus`, we see: `validatorFromPlutus :: forall v. SingPlutusVersionI v => PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ()) -> GYValidator v` where for the time being we can ignore the description of the typeclass `SingPlutusVersionI`[^1] besides noting the fact that only types (currently `'PlutusV1` & `'PlutusV2`) of kind `PlutusVersion` have an instance for it. So here, our function `validatorFromPlutus` works for all type variable `v` which have an instance of `SingPlutusVersionI` but there is no way to learn what this `v` is based solely on the input `PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())` and therefore, caller must specify it, either by providing type signature (of callee or caller due to type inference) or by using [visible type application](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/type_applications.html). Our first operation does make use of it but before looking at it, we need to understand about `GYTxQueryMonad`.
 
 ### Interlude - `GYTxQueryMonad`
 
@@ -45,59 +57,7 @@ When we want to obtain the address of the script from its hash, besides the hash
 
 Similarly, transaction building involves querying the ledger for various information like say querying UTxO's present at one's address, similarly it might need help of some chain indexer to query datum in case output contains only the datum's hash.
 
-All of this is captured by typeclass `GYTxQueryMonad` defined [here](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/TxBuilder/Class.hs) and also shown below (kindly see all these functions defined for this typeclass).
-
-```haskell
--- | Class of monads for querying chain data.
-class MonadError GYTxMonadException m => GYTxQueryMonad m where
-    {-# MINIMAL networkId, lookupDatum, (utxoAtTxOutRef | utxosAtTxOutRefs), (utxosAtAddress | utxosAtAddresses), slotConfig, currentSlot, logMsg #-}
-
-    -- | Get the network id
-    networkId :: m GYNetworkId
-
-    -- | Lookup datum by its hash.
-    lookupDatum :: GYDatumHash -> m (Maybe GYDatum)
-
-    -- | Lookup 'GYUTxO' at 'GYTxOutRef'.
-    --
-    utxoAtTxOutRef :: GYTxOutRef -> m (Maybe GYUTxO)
-    utxoAtTxOutRef ref = do
-        utxos <- utxosAtTxOutRefs [ref]
-        return $ case utxosToList utxos of
-            []       -> Nothing
-            utxo : _ -> Just utxo
-
-    -- | Lookup 'GYUTxOs' at multiple 'GYTxOutRef's at once
-    utxosAtTxOutRefs :: [GYTxOutRef] -> m GYUTxOs
-    utxosAtTxOutRefs orefs = utxosFromList <$> wither utxoAtTxOutRef orefs
-
-    -- | Lookup 'GYUTxOs' at 'GYAddress'.
-    utxosAtAddress :: GYAddress -> m GYUTxOs
-    utxosAtAddress = utxosAtAddresses . return
-
-    -- | Lookup 'GYUTxOs' at zero or more 'GYAddress'.
-    utxosAtAddresses :: [GYAddress] -> m GYUTxOs
-    utxosAtAddresses = foldM f mempty
-      where
-        f :: GYUTxOs -> GYAddress -> m GYUTxOs
-        f utxos addr = (<> utxos) <$> utxosAtAddress addr
-
-    -- | Lookup the `[GYTxOutRef]`s at a `GYAddress`
-    utxoRefsAtAddress :: GYAddress -> m [GYTxOutRef]
-    utxoRefsAtAddress = fmap (Map.keys . mapUTxOs id) . utxosAtAddress
-
-    {- | Obtain the slot config for the network.
-
-    Implementations using era history to create slot config may raise 'GYEraSummariesToSlotConfigError'.
-    -}
-    slotConfig :: m GYSlotConfig
-
-    -- | Lookup the current 'GYSlot'.
-    currentSlot :: m GYSlot
-
-    -- | Log a message with specified namespace and severity.
-    logMsg :: HasCallStack => GYLogNamespace -> GYLogSeverity -> String -> m ()
-```
+All of this is captured by typeclass `GYTxQueryMonad` documented [here](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxQueryMonad). It is strongly advised to see methods made available by it.
 
 So, if we are working inside a monad which happens to also provide an instance for it, we would happily be able to query such an information.
 
@@ -106,7 +66,7 @@ So, if we are working inside a monad which happens to also provide an instance f
 In this operation, we only need to obtain network details with the help of this monad. Here is the code to obtain address (notice that we have provided multiple versions of the same code here):
 
 <Callout type="info">
-  Type of `scriptAddress` used below (& defined in [`Class.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/TxBuilder/Class.hs)) is `scriptAddress :: forall (m :: * -> *) (v :: PlutusVersion). GYTxQueryMonad m => GYValidator v -> m GYAddress`. Thus with respect to type application, the first parameter is for monad and second one is `PlutusVersion` kinded.
+  Type of [`scriptAddress`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#v:scriptAddress) used below is `scriptAddress :: forall (m :: * -> *) (v :: PlutusVersion). GYTxQueryMonad m => GYValidator v -> m GYAddress`. Thus with respect to type application, the first parameter is for monad and second one is `PlutusVersion` kinded.
 
   Internally this function queries for network details.
 </Callout>
@@ -159,35 +119,24 @@ Well what is this monad `m` being used here? Well any! As long as it has an inst
 
 ### Interlude - `GYTxSkeleton`
 
-As mentioned before, we just mention at high level what we want in a transaction. This is captured by `GYTxSkeleton` defined [here](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/TxBuilder/Class.hs) and its description is mentioned below.
+As mentioned before, we just mention at high level what we want in a transaction. This is captured by [`GYTxSkeleton`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxSkeleton) datatype and its description is mentioned below.
 
-| Fields           | Represented by      | Additional details                                                                                                                                                                                                                                                                                                                                                            |
-|------------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Inputs           | `gytxIns`           | It is a list of inputs where for each input, we have its UTxO reference (the "TxIn" as the [cardano ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/latest/download/byron-ledger.pdf) calls it) and a witness. In case this UTxO doesn't belong to a script, we just need spending key witness, otherwise we need the associated script, its datum and input redeemer where the associated script could be provided as part of this transaction body or could be obtained from reference input. See [`TxIn.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/TxIn.hs). |
-| Outputs          | `gytxOuts`          | List of outputs produced by this transaction where for each output we can mention whether the datum is to be inlined or not and whether this output stores any script. See [`TxOut.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/TxOut.hs).                                                                                                                                                                                  |
-| Reference Inputs | `gytxRefIns`        | Set of reference to UTxOs corresponding to reference inputs. Defined in same file, viz. [`Class.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/TxBuilder/Class.hs).                                                                                                                                                                                                                                                                                                                               |
-| Mints            | `gytxMint`          | Map of minting policy to pair of redeemer and another map for token name to mint amount for that token.                                                                                                                                                                                                                                                                      |
-| Signatories      | `gytxSigs`          | Set of Public Key Hash of Signatories.                                                                                                                                                                                                                                                                                                                                        |
-| Valid after      | `gytxInvalidBefore` | Just the corresponding node slot.                                                                                                                                                                                                                                                                                                                                                           |
-| Valid before     | `gytxInvalidAfter`  | Same as above.                                                                                                                                                                                                                                                                                                                                                                |
-
-Corresponding snippet of haskell code:
-
-```haskell
-data GYTxSkeleton (v :: PlutusVersion) = GYTxSkeleton
-    { gytxIns           :: ![GYTxIn v]
-    , gytxOuts          :: ![GYTxOut v]
-    , gytxRefIns        :: !(GYTxSkeletonRefIns v)
-    , gytxMint          :: !(Map (Some GYMintingPolicy) (Map GYTokenName Integer, GYRedeemer))
-    , gytxSigs          :: !(Set GYPubKeyHash)
-    , gytxInvalidBefore :: !(Maybe GYSlot)
-    , gytxInvalidAfter  :: !(Maybe GYSlot)
-    } deriving Show
-```
+| Fields           | Represented by      | Additional details                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|------------------|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Inputs           | `gytxIns`           | It is a list of inputs where for each input, we have its UTxO reference (the "TxIn" as the [cardano ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/latest/download/byron-ledger.pdf) calls it) and a witness. In case this UTxO doesn't belong to a script, we just need spending key witness, otherwise we need the associated script, its datum and input redeemer where the associated script could be provided as part of this transaction body or could be obtained from reference input. See [`GeniusYield.Types.TxIn`](https://haddock.atlas-app.io/GeniusYield-Types-TxIn.html). |
+| Outputs          | `gytxOuts`          | List of outputs produced by this transaction where for each output we can mention whether the datum is to be inlined or not and whether this output stores any script. See [`GeniusYield.Types.TxOut`](https://haddock.atlas-app.io/GeniusYield-Types-TxOut.html).                                                                                                                                                                                                                                                                                                                                                         |
+| Reference Inputs | `gytxRefIns`        | Set of reference to UTxOs corresponding to reference inputs.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Mints            | `gytxMint`          | Map of minting policy to pair of redeemer and another map for token name to mint amount for that token.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Withdrawals      | `gytxWdrls`         | It is a list of withdrawals. Each withdrawal is specified by the concerned stake address with it's associated available rewards and witness. Witness could either be a key witness or a script witness.                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Signatories      | `gytxSigs`          | Set of Public Key Hash of Signatories.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Certificates     | `gytxCerts`         | List of transaction certificates.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Valid after      | `gytxInvalidBefore` | Just the corresponding node slot.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Valid before     | `gytxInvalidAfter`  | Same as above.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Metadata         | `gytxMetadata`      | Transaction metadata.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 When constructing the transaction, we just need to specify what we want in this skeleton.
 
-This skeleton naturally has a monoid instance where two skeletons are combined by running `mappend` over each of their fields. We have utility functions defined in the same file [`Class.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/TxBuilder/Class.hs) like (note that there are other helpful functions defined in the same file and it would in general be useful to go over them):
+This skeleton naturally has a monoid instance where two skeletons are combined by running `mappend` over each of their fields. We have utility functions defined in the same ([`GeniusYield.TxBuilder.Class`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html)) module like:
 
 ```haskell
 mustHaveOutput :: GYTxOut v -> GYTxSkeleton v
@@ -210,13 +159,22 @@ isInvalidBefore s = emptyGYTxSkeleton {gytxInvalidBefore = Just s}
 
 isInvalidAfter :: GYSlot -> GYTxSkeleton v
 isInvalidAfter s = emptyGYTxSkeleton {gytxInvalidAfter = Just s}
+
+mustHaveTxMetadata :: Maybe GYTxMetadata -> GYTxSkeleton v
+mustHaveTxMetadata m = emptyGYTxSkeleton {gytxMetadata = m}
+
+mustHaveWithdrawal :: GYTxWdrl v -> GYTxSkeleton v
+mustHaveWithdrawal w = mempty {gytxWdrls = [w]}
+
+mustHaveCertificate :: GYTxCert v -> GYTxSkeleton v
+mustHaveCertificate c = mempty {gytxCerts = [c]}
 ```
 
 Thus we can specify that our transaction must have this output (using `mustHaveOutput`) and that output and must have this input (using `mustHaveInput`) and so on... and combine them all into a single skeleton using `mappend`.
 
 ### Skeleton for adding reference input
 
-Here we want to create an output at a given address (Oracle's address) with the given datum. This UTxO is to be later used as a reference input by script where the script would refer to its datum. Here we have decided to keep this datum inline as currently framework is not supporting reading datum for a reference input whose output contains only datum hash[^2].
+Here we want to create an output at a given address (Oracle's address) with the given datum. This UTxO is to be later used as a reference input by script where the script would refer to its datum. Here we have decided to keep this datum inline.
 
 ```haskell
 -- | Add UTxO to be used as reference input at a given address with given datum.
@@ -305,7 +263,7 @@ input brp refScript inputRef dat red =
 Following is the complete code for handling this case. Few comments to facilitate its understanding:
 
 * We first query the UTxO corresponding to previous bets at script address and we then query for its datum using `utxoDatum'` which tries its best to retrieve the datum and raises an exception in case it fails. This is its signature: `utxoDatum' :: (GYTxQueryMonad m, Plutus.FromData a) => GYUTxO -> m (GYAddress, GYValue, a)`.
-  * _Note_: `utxoAtTxOutRef'` (defined again in [`Class.hs`](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/TxBuilder/Class.hs)) is a wrapper around `utxoAtTxOutRef` which raises an exception in case the result was `Nothing`.
+  * _Note_: [`utxoAtTxOutRef'`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#v:utxoAtTxOutRef-39-) is a wrapper around [`utxoAtTxOutRef`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#v:utxoAtTxOutRef) which raises an exception in case the result was `Nothing`.
 
 * We then see the use of `gyLogDebug'` which as you would expect is for logging purposes. The first argument that it takes correspond to namespace as used by [`Katip`](https://hackage.haskell.org/package/katip-0.8.7.2/docs/Katip-Core.html#t:Namespace). This is where integration of off-chain and on-chain code really begins to shine ✨, having the `Show` instance defined for some of our on-chain types allows us to log them.
 
@@ -368,7 +326,7 @@ takeBets refScript brp previousBetsUtxoRef ownAddr oracleRefInput = do
     <> mustBeSignedBy pkh
 ```
 
-## Additional Useful Functions
+## Additional Useful Features
 
 ### `utxosDatums`
 
@@ -378,6 +336,8 @@ Sometimes we want to see all _valid_ UTxOs at our script address. In Cardano, an
 
 We weren't minting any tokens in our example here and thus didn't make use of `mustMint` skeleton function. It's sample usage is given in [this](https://github.com/geniusyield/atlas/blob/main/src/GeniusYield/Api/TestTokens.hs) example. Which also illustrates how one can mint NFT and shows usage of `someUTxO` function which essentially gives some random UTxO belonging to wallet.
 
-[^1]: This is related to singletons and one can read about it from the "Dependent Types" chapter (the last one) in [Thinking with Types](https://thinkingwithtypes.com/) book.
+### Withdrawals, Stake Validator & Stake Certificates
 
-[^2]: This however is not true for normal inputs where you can specify the datum as we'll see in other operations.
+We haven't made use of withdrawals, stake certificates and stake validators in our example. A sample illustration is provided in [this](https://github.com/geniusyield/atlas/blob/main/tests-privnet/GeniusYield/Test/Privnet/Stake.hs) privnet test.
+
+[^1]: This is making use of _"singletons"_ and one can read about it from the "Dependent Types" chapter (the last one) in [Thinking with Types](https://thinkingwithtypes.com/) book.
