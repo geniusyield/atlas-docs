@@ -4,10 +4,16 @@ const withNextra = require('nextra')({
   defaultShowCopyCode: true,
 })
 
-// https://github.com/vercel/next.js/issues/29362#issuecomment-971377869
-module.exports = withNextra({
-  images: {
-    unoptimized: true,
-  },
-})
+/**
+ * @type {import('next').NextConfig}
+ */
+const nextConfig = {
+    output: 'export',
+    images: {
+      // https://github.com/vercel/next.js/issues/29362#issuecomment-971377869
+      unoptimized: true,
+    }
+  };
+
+module.exports = withNextra(nextConfig)
 
