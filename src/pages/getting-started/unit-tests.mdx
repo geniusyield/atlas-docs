@@ -8,6 +8,12 @@ Now that we have written our smart contract and defined the required operations 
 
 Our test suite is a wrapper around [Plutus simple model](https://github.com/mlabs-haskell/plutus-simple-model)[^1] which is created by MLabs.
 
+<Callout type="warning">
+  MLabs is working on an evolution of PSM, namely [CLB](https://github.com/mlabs-haskell/clb) which is intended to work exclusively with Atlas. Thus, we have deprecated support of PSM and would soon document overhaul of this test suite. If you would like to avoid using PSM and wait till CLB is ready, you can skip to next section, namely, [Integration Tests](./integration-tests.mdx).
+
+  Currently our PSM wrapper does not support operations related to staking, namely, stake key registration, delegation, de-registration and rewards withdrawal.
+</Callout>
+
 ## Why not just use "Plutus simple model" instead of the wrapper?
 
 1. **Reusability**: Well firstly to maintain compatibility with our toolchain. For instance, our operations were making use of `GYTxQueryMonad` monad and thus to be able to reuse those same operations we would need to define an instance for it.
@@ -113,14 +119,13 @@ Now let's see the definition `firstBetTrace` we briefly encountered above:
 -- | Trace for placing the first bet.
 firstBetTrace :: OracleAnswerDatum  -- ^ Guess
               -> GYValue            -- ^ Bet
-              -> Integer            -- ^ Expected fees
               -> Wallets -> Run ()  -- Our continuation function
-firstBetTrace dat bet expectedFees ws@Wallets{..} = do
+firstBetTrace dat bet ws@Wallets{..} = do
   -- First step: Get the required parameters for initializing our parameterized script and add the corresponding reference script
   (brp, refScript) <- computeParamsAndAddRefScript 40 100 (valueFromLovelace 200_000_000) ws
   void $ runWallet w1 $ do  -- following operations are ran by first wallet, `w1`
   -- Second step: Perform the actual run.
-    withWalletBalancesCheck [w1 := valueNegate (valueFromLovelace expectedFees <> bet)] $ do
+    withWalletBalancesCheckSimple [w1 := valueNegate bet] $ do
       placeBetRun refScript brp dat bet Nothing
 ```
 
@@ -173,7 +178,7 @@ Though it is not required for this operation (where we place the first bet) but 
 
 Now we are almost done to call our _run_ with just one more line to understand.
 
-`withWalletBalancesCheck` takes a list of tuple[^3] where the first element of the tuple is the wallet and second element denotes the difference in the wallet's value which we expect after the execution of the operation defined inside its `do` block. Here we want the balance of wallet 1 (which is the one actually calling this operation) to decrease by the bet amount and also the fees.
+`withWalletBalancesCheckSimple` takes a list of tuple[^3] where the first element of the tuple is the wallet and second element denotes the difference in the wallet's value which we expect after the execution of the operation defined inside its `do` block excluding ada required for transaction fees and to satisfy minimum ada requirements of the generated output[^4]. Here we want the balance of wallet 1 (which is the one actually calling this operation) to decrease by the bet amount and also the fees.
 
 <Callout>
   **How do we know the fees?**
@@ -337,9 +342,9 @@ takeBetsTrace :: Integer                                            -- ^ slot fo
               -> [(Wallets -> Wallet, OracleAnswerDatum, GYValue)]  -- ^ List denoting the bets
               -> Integer                                            -- ^ Actual answer
               -> (Wallets -> Wallet)                                -- ^ Taker
-              -> Maybe Integer                                      -- ^ Expected fees
+              -> Bool                                               -- ^ To check balance
               -> Wallets -> Run ()  -- Our continuation function
-takeBetsTrace betUntil' betReveal' betStep walletBets answer getTaker mExpectedFees ws@Wallets{..} = do
+takeBetsTrace betUntil' betReveal' betStep walletBets answer getTaker toCheckBalance ws@Wallets{..} = do
   (brp, refScript) <- computeParamsAndAddRefScript betUntil' betReveal' betStep ws
   multipleBetsTraceCore brp refScript walletBets ws
   -- Now lets take the bet
@@ -349,13 +354,10 @@ takeBetsTrace betUntil' betReveal' betStep walletBets answer getTaker mExpectedF
     Just (Just refInput) -> do
       void $ runWallet taker $ do
         betRefAddr <- betRefAddress brp
-        [_scriptUtxo@GYUTxO {utxoRef, utxoValue}] <- utxosToList <$> utxosAtAddress betRefAddr
+        [_scriptUtxo@GYUTxO {utxoRef, utxoValue}] <- utxosToList <$> utxosAtAddress betRefAddr Nothing
         waitUntilSlot $ slotFromApi (fromInteger betReveal')
-        case mExpectedFees of
-          Just expectedFees ->
-            withWalletBalancesCheck [taker := utxoValue <> valueNegate (valueFromLovelace expectedFees)] $ do
-              takeBetsRun refScript brp utxoRef refInput
-          Nothing -> takeBetsRun refScript brp utxoRef refInput
+        (if toCheckBalance then withWalletBalancesCheckSimple [taker := utxoValue] $ do
+            takeBetsRun refScript brp utxoRef refInput else takeBetsRun refScript brp utxoRef refInput)
     _anyOtherMatch -> fail "Couldn't place reference input successfully"
 ```
 
@@ -385,3 +387,5 @@ Now that we have our trace for taking bet pot, we can try testing for other cond
       ```
 
 [^3]: Since we require the signature being present in the skeleton, we can't place bet on anyone else's behalf anyways.
+
+[^4]: If you would like exact fine grained control over balance change, use `withWalletBalancesCheck` instead.
