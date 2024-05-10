@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "export": "next build && next build && touch out/.nojekyll && cp CNAME out/",
+    "export": "next build && touch out/.nojekyll && cp CNAME out/",
     "lint": "next lint --max-warnings=0",
     "type-check": "tsc --pretty --noEmit",
     "deploy": "gh-pages -d out -t true",
