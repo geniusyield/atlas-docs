@@ -9,7 +9,6 @@ const withNextra = require('nextra')({
  */
 const nextConfig = {
     output: 'export',
-    distDir: 'dist',
     images: {
       // https://github.com/vercel/next.js/issues/29362#issuecomment-971377869
       unoptimized: true,
