@@ -18,6 +18,10 @@ Thus, we only specify at high-level what we want. This would become clear as we 
 
 Entire code for these operations is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/server-lib/BetRef/Api/Operations.hs).
 
+<Callout type="info">
+  When working with Atlas inside your project, since Atlas isn't on Hackage, you'll need to [specify](https://cabal.readthedocs.io/en/stable/cabal-project.html#specifying-packages-from-remote-version-control-locations) it as a remote package inside your `cabal.project`. Moreover, since Atlas itself relies on dependencies which are outside Hackage, those would need to be specified too. To streamline this, it's best to use the [`cabal.project`](https://github.com/geniusyield/atlas-examples/blob/main/cabal.project) mentioned in `atlas-examples` repository where you would just need to modify `packages:` stanza depending upon your project. 
+</Callout>
+
 ## Operation _1_: Generating address for our Smart Contract
 
 ### Generating Validator for our Smart Contract

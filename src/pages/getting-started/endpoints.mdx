@@ -26,7 +26,7 @@ As noted earlier, building transaction bodies require gathering suitable informa
 Currently Atlas supports the following providers (& it would be highly appreciated if community enriches this by contributing to [Atlas](https://github.com/geniusyield/atlas/tree/main)):
 
 * [Maestro](https://www.gomaestro.org/).
-* Locally ran node along with [Kupo](https://cardanosolutions.github.io/kupo/).
+* Locally ran node along with [Kupo](https://cardanosolutions.github.io/kupo/). We have tested with version 8.1.2 of `cardano-node` and 2.7.2 of Kupo.
 * [Blockfrost](https://blockfrost.io/).
 
 <Callout type="warning">
@@ -70,7 +70,7 @@ where `coreProvider` field can have one of following possible values:
   </Tab>
   <Tab>
     ```json
-    "coreProvider": { "socketPath": "path-to-node-socket", "kupoUrl": "http://localhost:1443" },
+    "coreProvider": { "socketPath": "path-to-node-socket", "kupoUrl": "http://localhost:1442" },
     ```
   </Tab>
   <Tab>
@@ -84,7 +84,7 @@ Here is the explanation for each of the JSON keys above:
 
 * **`coreProvider`**: This field is the differentiating factor between different providers.
   * For Maestro, `maestroToken` holds the api key and `turboSubmit` field dictates whether the transactions are to be submitted via their [turbo submit](https://docs.gomaestro.org/Cardano/Transaction-Manager/tx-manager-turbo-submit) endpoint.
-  * For Local Node with Kupo provider, `socketPath` is the path towards node socket (usually named `node.socket`) file and `kupoUrl` is the url where endpoints are made available by Kupo, it is usually `http://localhost:1443`.
+  * For Local Node with Kupo provider, `socketPath` is the path towards node socket (usually named `node.socket`) file and `kupoUrl` is the url where endpoints are made available by Kupo, it is usually `http://localhost:1442`.
   * For Blockfrost, `blockfrostKey` holds the required api key.
 * **`networkId`**: Specifies your network and must be one of `mainnet`, `preprod`, `preview`, `testnet` (for legacy testnet) & `privnet` (for local private network).
 * **`logging`**: It's a list of [scribes](https://hackage.haskell.org/package/katip-0.8.7.3/docs/Katip.html#t:Scribe) to register. Its parameters (like `severity`, `verbosity`) and its general usage can be understood by going over their official haddock documentation [here](https://hackage.haskell.org/package/katip-0.8.7.2/docs/Katip.html). Katip is also explained in [this](https://link.springer.com/book/10.1007/978-1-4842-3739-7) book on web development in Haskell. Please have a look at haddock for `FromJSON` and `ToJSON` instances of [`GYLogScriptType`](https://haddock.atlas-app.io/GeniusYield-Types-Logging.html#t:GYLogScribeType) to see sample usage.
