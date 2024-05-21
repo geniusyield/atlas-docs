@@ -1,6 +1,5 @@
 import axios from "axios";
 import { bech32 } from "bech32";
-import * as C from "@dcspark/cardano-multiplatform-lib-browser";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useState } from "react";
 
@@ -117,47 +116,6 @@ interface BrpParams {
 }
 
 type SupportedWallets = "nami" | "eternl";
-
-export const fromHex = (hexString: string): Uint8Array =>
-  Uint8Array.from(hexString.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16)));
-
-export const toHex = (bytes: Uint8Array): string =>
-  bytes.reduce((str: string, byte: number) => str + byte.toString(16).padStart(2, "0"), "");
-
-const signAndSubmitTx = async (api: WalletApi, txCborHex: string): Promise<string> => {
-  console.log("Unsigned transaction CBOR hex is " + txCborHex);
-
-  // parse the base tx into the serialization lib model
-  const transaction = C.Transaction.from_bytes(fromHex(txCborHex));
-  const txWitnessses = transaction.witness_set();
-  const txVKeyWitnesses = txWitnessses.vkeys() ?? C.Vkeywitnesses.new();
-
-  // Get the user to sign the base tx in the browser via wallet.
-  const signedWitnessSet = C.TransactionWitnessSet.from_bytes(
-    fromHex(await api.signTx(toHex(transaction.to_bytes()), true))
-  );
-
-  // Extract the vkey witnesses from the signing witness.
-  const walletVkeyWitnesses = signedWitnessSet.vkeys(); // This won't actually be nullish (CIP 30).
-
-  if (walletVkeyWitnesses) {
-    // Combine the wallet vkey witnesses with any existing vkey witnesses.
-    for (let i = 0; i < walletVkeyWitnesses?.len() ?? 0; i++) {
-      txVKeyWitnesses.add(walletVkeyWitnesses.get(i));
-    }
-  }
-
-  // Overwrite the vkeys in the tx witnesses.
-  txWitnessses.set_vkeys(txVKeyWitnesses);
-
-  // Compose the final tx.
-  const finalTx = C.Transaction.new(transaction.body(), txWitnessses, transaction.auxiliary_data());
-
-  // Convert to cbor hex. You can submit this in the browser with `api.submitTx()` or using the submit endpoint at backend.
-  const finalTxCbor = toHex(finalTx.to_bytes());
-  console.log("Final transaction CBOR is " + finalTxCbor);
-  return finalTxCbor;
-};
 
 const adaLovelace: number = 1000000;
 
@@ -302,32 +260,41 @@ const BrowserFunctions = () => {
 
         console.log("brp params raw", brpParams);
 
-        const api: WalletApi = await window.cardano[selectedWallet].enable();
+        // Obtain access to browser wallet api
+        const api: WalletApi = await window.cardano[selectedWallet].enable(); // Creating a type such as `WalletApi` was entirely optional.
 
+        // Obtaining UTxOs to be used collaterals as given by browser wallet.
+        const colls = await api.experimental.getCollateral();
+
+        // Create request body for calling our endpoint
         const body = {
           arsUsedAddrs: await api.getUsedAddresses(),
           arsChangeAddr: await api.getChangeAddress(),
-          arsCollateral: (await api.experimental.getCollateral())[0],
-          arsPutAddress: convertAddrToRaw(values.putAddress),
-          arsBetParams: processBrpParams(brpParams),
+          ...(0 in colls && { arsCollateral: colls[0] }),
+          arsPutAddress: convertAddrToRaw(values.putAddress), // implementation detail
+          arsBetParams: processBrpParams(brpParams), // implementation detail
         };
         console.log(body);
 
+        // Call endpoint
         const { data } = await axios.post("http://localhost:8081/betref/add-ref-script", body);
         console.log(data);
 
-        const addIdx = data.urspUtxoRefIdx;
-
-        const finalTxCbor = await signAndSubmitTx(api, data.urspTxBodyHex);
-        // txHash = await wallet.submitTx(finalTxCbor);  // alternate
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
-          headers: {
-            "Content-Type": "application/json",
+        // Sign & submit
+        const { data: submitData } = await axios.post(
+          "http://localhost:8081/tx/add-wit-and-submit",
+          {
+            awasTxUnsigned: data.urspTxBodyHex,
+            awasTxWit: await api.signTx(data.urspTxBodyHex, true), // Note that this second argument (corresponding to "partial signing") needs to be `true` as for inputs such as those belonging to script already have their witness and we need to give witness only for inputs belonging to us.
           },
-        });
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         console.log(submitData);
-        const addId = submitData.submitTxId;
-        setAddTxRef(`${addId}#${addIdx}`);
+        setAddTxRef(data.urspUtxoRef);
       } catch (error) {
         alert(JSON.stringify(error));
       }
@@ -377,10 +344,11 @@ const BrowserFunctions = () => {
         if (brpParams === undefined) throw "Not yet given script parameters";
         console.log("brp params raw", brpParams);
         const api: WalletApi = await window.cardano[selectedWallet].enable();
+        const colls = await api.experimental.getCollateral();
         const body = {
           pbrUsedAddrs: await api.getUsedAddresses(),
           pbrChangeAddr: await api.getChangeAddress(),
-          pbrCollateral: (await api.experimental.getCollateral())[0],
+          ...(0 in colls && { pbrCollateral: colls[0] }),
           pbrBetAmt: {
             lovelace: values.betAmt * adaLovelace,
           },
@@ -392,17 +360,17 @@ const BrowserFunctions = () => {
         console.log(body);
         const { data } = await axios.post("http://localhost:8081/betref/place", body);
         console.log(data);
-        const placeIdx = data.urspUtxoRefIdx;
-        const finalTxCbor = await signAndSubmitTx(api, data.urspTxBodyHex);
-        // txHash = await wallet.submitTx(finalTxCbor);  // alternate
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const { data: submitData } = await axios.post(
+          "http://localhost:8081/tx/add-wit-and-submit",
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         console.log(submitData);
-        const placeId = submitData.submitTxId;
-        setPlaceTxRef(`${placeId}#${placeIdx}`);
+        setPlaceTxRef(data.urspUtxoRef);
       } catch (error) {
         alert(JSON.stringify(error));
       }
@@ -472,27 +440,28 @@ const BrowserFunctions = () => {
         if (brpParams === undefined) throw "Not yet given script parameters";
         console.log("brp params raw", brpParams);
         const api: WalletApi = await window.cardano[selectedWallet].enable();
+        const colls = await api.experimental.getCollateral();
         const body = {
           ariUsedAddrs: await api.getUsedAddresses(),
           ariChangeAddr: await api.getChangeAddress(),
-          ariCollateral: (await api.experimental.getCollateral())[0],
+          ...(0 in colls && { ariCollateral: colls[0] }),
           ariPutAddress: convertAddrToRaw(brpParams.brpOracleAddress),
           ariBetAnswer: values.betAnswer,
         };
         console.log(body);
         const { data } = await axios.post("http://localhost:8081/betref/add-ref-input", body);
         console.log(data);
-        const addIdx = data.urspUtxoRefIdx;
-        const finalTxCbor = await signAndSubmitTx(api, data.urspTxBodyHex);
-        // txHash = await wallet.submitTx(finalTxCbor);  // alternate
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const { data: submitData } = await axios.post(
+          "http://localhost:8081/tx/add-wit-and-submit",
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         console.log(submitData);
-        const addId = submitData.submitTxId;
-        setAddTxRef(`${addId}#${addIdx}`);
+        setAddTxRef(data.urspUtxoRef);
       } catch (error) {
         alert(JSON.stringify(error));
       }
@@ -540,10 +509,11 @@ const BrowserFunctions = () => {
         if (brpParams === undefined) throw "Not yet given script parameters";
         console.log("brp params raw", brpParams);
         const api: WalletApi = await window.cardano[selectedWallet].enable();
+        const colls = await api.experimental.getCollateral();
         const body = {
           tbrUsedAddrs: await api.getUsedAddresses(),
           tbrChangeAddr: await api.getChangeAddress(),
-          tbrCollateral: (await api.experimental.getCollateral())[0],
+          ...(0 in colls && { tbrCollateral: colls[0] }),
           tbrBetParams: processBrpParams(brpParams),
           tbrOracleRefInputRef: values.oracleRefInputRef,
           tbrPrevBetRef: values.prevBetRef,
@@ -552,13 +522,15 @@ const BrowserFunctions = () => {
         console.log(body);
         const { data } = await axios.post("http://localhost:8081/betref/take", body);
         console.log(data);
-        const finalTxCbor = await signAndSubmitTx(api, data.urspTxBodyHex);
-        // txHash = await wallet.submitTx(finalTxCbor);  // alternate
-        const { data: submitData } = await axios.post("http://localhost:8081/tx/submit", finalTxCbor, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const { data: submitData } = await axios.post(
+          "http://localhost:8081/tx/add-wit-and-submit",
+          { awasTxUnsigned: data.urspTxBodyHex, awasTxWit: await api.signTx(data.urspTxBodyHex, true) },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         console.log(submitData);
         setTakeTxId(submitData.submitTxId);
       } catch (error) {

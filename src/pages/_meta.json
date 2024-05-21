@@ -12,6 +12,12 @@
     "href": "/introduction"
   },
   "introduction": "Introduction",
-  "getting-started": "Getting Started"
+  "getting-started": "Getting Started",
+  "more-tutorials": "More Tutorials",
+  "haddock": {
+    "title": "API Reference (Haddock) ⬈",
+    "href": "https://haddock.atlas-app.io/",
+    "newWindow": true
+  }
 }
 

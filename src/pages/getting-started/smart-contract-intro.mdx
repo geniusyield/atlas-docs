@@ -2,11 +2,17 @@ import { Callout } from 'nextra-theme-docs'
 
 # Smart Contract
 
-Let's start by writing a smart contract that we will convey the framework's most important features.
+Let's now start by writing a smart contract that we will use to convey framework's important features.
 
 <Callout type="warning">
 
   This contract is for illustrative purposes only. We do not recommend using it in a production environment[^1].
+
+</Callout>
+
+<Callout>
+
+  Here we'll be writing our smart contract in Haskell but do note that we are not limited to it. You for instance could write your smart contract in any language of your choice and read the compiled CBOR using `scriptFromCBOR` function defined [here](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) ([Operations over Contract](./operations.mdx) chapter explains about types such as `GYScript`, `PlutusVersion` which are used in this function). Similarly, there is `readScript` defined in the [same](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) file to read from the compiled [text envelope](https://cardano-api.cardano.intersectmbo.org/cardano-api/Cardano-Api-SerialiseTextEnvelope.html#t:TextEnvelope) file.
 
 </Callout>
 
@@ -17,6 +23,12 @@ Setting here is that we have a sport match happening and a group of friends want
 Winner is the one whose guess is closest (and in case of tie - the one who takes it fastest!).
 
 The smart contract code is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/onchain/BetRef/OnChain/BetRef.hs). This example was inspired by [MLabs](https://github.com/mlabs-haskell/plutus-simple-model/blob/main/psm/test/Suites/Plutus/Model/Script/V2/Onchain/Oracle.hs).
+
+<Callout type="info">
+
+  Since the underlying version of `plutus` library we are using defaults to version 1.1.0 of plutus core, we need to explicitly set [`target-version`](https://plutus.readthedocs.io/en/latest/reference/writing-scripts/compiler-options.html) to 1.0.0, and that is why there is `ghc-options: -fplugin-opt PlutusTx.Plugin:target-version=1.0.0` in [our cabal file](https://github.com/geniusyield/atlas-examples/blob/main/bet-ref/betref.cabal).
+
+</Callout>
 
 ### Contract Parameters
 
@@ -89,7 +101,7 @@ PlutusTx.unstableMakeIsData ''BetRefAction
 
 ### Placing a bet
 
-Initial bet gets placed as it is (in Cardano, validator script is executed only when spending an UTxO belonging to it but not for creating _at it_).
+Initial bet gets placed as it is (in Cardano, spending validator script is executed only when spending an UTxO belonging to it but not for creating _at it_).
 
 For subsequent bets, we require three conditions:
 

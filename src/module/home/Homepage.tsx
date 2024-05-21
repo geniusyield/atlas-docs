@@ -23,12 +23,12 @@ const Homepage = () => {
       <ModularDataSection />
       <DescriptionSection />
       <FeaturesSection />
-      <HighlihtedSections>
+      <HighlightedSections>
         <AboutSection />
         <DevelopedBySection />
         <PartnersSection />
         <Footer />
-      </HighlihtedSections>
+      </HighlightedSections>
     </Wrapper>
   );
 };
@@ -66,7 +66,7 @@ const Wrapper = styled("div")({
   background: "black",
 });
 
-const HighlihtedSections = styled("div")({
+const HighlightedSections = styled("div")({
   position: "relative",
   overflow: "hidden",
 });
