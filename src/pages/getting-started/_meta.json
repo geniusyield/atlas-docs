@@ -2,8 +2,7 @@
   "how-to-build": "How to build?",
   "smart-contract-intro": "Smart Contract",
   "operations": "Operations over Contract",
-  "unit-tests": "Unit Tests",
-  "integration-tests": "Integration Tests",
+  "testing": "Testing",
   "endpoints": "Creating Endpoints",
   "browser-integration": "Browser Integration"
 }
