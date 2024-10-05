@@ -2,20 +2,20 @@ import { Callout } from 'nextra-theme-docs'
 
 # Blueprint
 
-Plutus Contract Blueprint, as introduced by [CIP-57](https://cips.cardano.org/cip/CIP-0057) is an effective way of communicating desired structure of validator's associated types such as datum & redeemer to your off-chain code.
+Plutus Contract Blueprint, as introduced by [CIP-57](https://cips.cardano.org/cip/CIP-0057) is an effective way of communicating desired structure of validator's associated types such as datum and redeemer to your off-chain code.
 
-With Atlas, you can easily have these types generated for you based on provided schema, along with some helper utilities, yay!
+With Atlas, you can easily have these types generated for you based on provided schema, along with useful helper utilities!
 
 <Callout>
 
-If your validator is parameterised, parameters must be "data" encoded (instead of scott or sums-of-products encoding[^1]) as blueprint notation desires it (data) to be primary binary interface. This is not an issue for datums & redeemers as they are required to be data encoded anyway.
+If your validator is parameterised, parameters must be "data" encoded (instead of scott or sums-of-products encoding[^1]) as blueprint notation requires it (data) to be primary binary interface. This is not an issue for datums & redeemers as they are required to be data encoded anyway.
 
-Validators written by tools such as Aiken uses data encoding for validator parameters.
+Validators written by tools such as Aiken use data encoding for validator parameters.
 </Callout>
 
 [Here](https://github.com/geniusyield/atlas/blob/main/tests/aiken/bar/validators/baz.ak) we have a parameterised Aiken validator. Mainly, it checks that sum of integers and length of bytestrings given in parameters, datum & redeemer sum up to a specific value.
 
-For it, we have a simple off-chain code [here](https://github.com/geniusyield/atlas/blob/main/tests-privnet/GeniusYield/Test/Privnet/Blueprint.hs), have a look at it and we provide some description for it below.
+For this validator, we have a simple off-chain code [here](https://github.com/geniusyield/atlas/blob/main/tests-privnet/GeniusYield/Test/Privnet/Blueprint.hs), have a look at it and we provide some description for it below.
 
 We first use Template Haskell to splice declarations from [`makeBPTypes`](https://haddock.atlas-app.io/GeniusYield-Types-Blueprint-TH.html#v:makeBPTypes) and [`uponBPTypes`](https://haddock.atlas-app.io/GeniusYield-Types-Blueprint-TH.html#v:uponBPTypes). `makeBPTypes` introduces types from definitions given in blueprint file and `uponBPTypes` creates data related instances such as [`ToData`](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-ledger-api/PlutusLedgerApi-Common.html#t:ToData), [`FromData`](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-ledger-api/PlutusLedgerApi-Common.html#t:FromData) for these types[^2].
 
@@ -31,4 +31,4 @@ To interact with blueprint file, you'll usually just need to import [`GeniusYiel
 </Callout>
 
 [^1]: See [CIP-85](https://cips.cardano.org/cip/CIP-0085) to understand about different encodings used.
-[^2]: We could however achieve both in single splice, however, since we are using utilities from PlutusTx to derive `ToData` etc. instances, they require type to be in scope first.
+[^2]: We could achieve both in single splice, however, since we are using utilities from PlutusTx to derive `ToData` etc. instances, they require type to be in scope first.
