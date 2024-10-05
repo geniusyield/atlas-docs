@@ -1,0 +1,549 @@
+import { Callout } from 'nextra-theme-docs'
+
+# Testing
+
+Writing smart contracts and operations over them go hand in hand with testing them.
+
+Tests are also an excellent way to check your smart contracts 
+instead of building transactions using `cardano-cli` 
+and submitting them to a local node.
+
+## Levels of testing
+
+Now that we have written our smart contracts and defined the required operations,
+let's see whether they work as expected. When it comes to testing dApps there are
+plenty of techniques and approaches. Let's focus on __levels__ at which we can
+perform testing:
+
+  * **Testing of UPLC functions.** You may want to verify that individual functions
+  your validators or minting policies consist of, indeed hold some properties. This is
+  useful if your on-chain logic is convoluted and involves complex computations.
+  This level is tightly coupled to the language you use to build your smart contracts
+  so you should consult the documentation.
+
+  * **Testing of individual contracts (script level).**
+  You might want to verify that the on-chain contracts you developed behave as expected
+  in isolation just by calling them with hand-constructed arguments for datum,
+  redeemer, and script context (since they are just functions after all)
+  and checking the results. Here again, you can use language-specific tools. 
+  But in case your contracts are already compiled down to UPLC code, 
+  you will need a special testing framework to do that.
+  Atlas currently doesn't provide such a thing, but there exist some projects of help,
+  namely [liqwid-context-builder](https://github.com/Liqwid-Labs/liqwid-libs/tree/main/plutarch-context-builder)
+  from Liqwid's Libs mono repo. It allows one to easily construct various transaction contexts
+  and verify a result that a particular script evaluates.
+  Testing of individual contracts proved to be very fruitful for both simple
+  and complex applications since it discovers bugs at very early stages
+  even before operations are defined.
+
+  * **Testing of operations (transactions).**
+  At this level, one can execute whole operations (transactions)
+  an application provides and verifies that they a) can run through and
+  b) confirm that some conditions we are interested in are held.
+  A nice thing to know about Atlas is that it allows you to reuse the code for operations 
+  you created in the previous step [Operations over Contract](./operations.mdx).
+  This is the level of testing we discuss in this section.
+  You can also make a distinction between testing individual transactions and
+  testing a flow of transactions, but in practice, it proves to be hard
+  to prepare a hand-made environment for most intermediary transactions to be run in
+  without running transactions that precede, so mostly it boils down
+  to test the whole transaction flow.
+
+## Overview of unified testing in Atlas
+
+Testing of whole operations (transactions) requires a Cardano ledger to evaluate them
+and keep the state. 
+There are two interchangeable options available in Atlas. 
+We will call them *ledger backends* throughout the rest of the section:
+
+  * __[CLB](https://github.com/mlabs-haskell/clb) emulator__
+  (a modern replacement for deprecated [PSM](https://github.com/mlabs-haskell/plutus-simple-model) library)
+  is the preferable way to test operations.
+  It's built around the pure Cardano ledger without the use of any network or consensus bits
+  and offers incredibly high speed with a tiny memory footprint,
+  but with some functional limitations.
+  You can easily spin up a fresh emulator ledger for every test case,
+  which makes running tests in isolation a trivial task.
+  * __Cardano private test network option__ (privnet for short) provides a more realistic environment.
+  It is a cluster of three `cardano-node` instances
+  that potentially could support all Cardano features,
+  including staking and governance.
+  The main downside of a privnet is that testing time is significantly bigger
+  (minutes not seconds even for simple tests).
+  So it's practically impossible to have a fresh network for every test case
+  but rather for the whole test suite run.
+
+<Callout type="info" emoji="⚠️">
+
+  Bear in mind that the behavior of the CLB emulator and a Cardano private network differ.
+
+  Not all features are supported in the emulator, and some notions, e.g. blocks and time
+  is not represented enough in the emulator to carry out all tests.
+
+  Fortunately, you can switch easily between two backends with unified testing.
+
+  TODO: add more information on how CLB/privnet differ.
+
+</Callout>
+
+Now that we know what the two backends available are,
+let's spend some time understanding what **unified testing** in Atlas offers.
+If we dissect a test case within a test suite
+we can identify the following things involved:
+1. An application under testing, including:
+    * Smart contracts
+    * Operations, which usually prepare transactions (or their skeletons)
+2. Definition of a test case, including:
+    * A prelude sequence of actions that prepare the state for a particular
+    operation to be ready to be executed
+    * A condition that wraps an operation we are testing  in the test case
+    and expresses checks we want to verify
+3. Test suite runtime:
+    * A ledger backend
+    * Some code to run a test case against a backend
+
+The idea of unified testing pursues the goal of making items under (1) and (2) reusable
+across different (currently, the two mentioned above) ledger backends.
+
+Let's run through an example test suite to get the idea and figure out its details.
+
+## Testing placing a bet
+
+<Callout type="warning" emoji="📃">
+You can find the entire code for this example [here](https://github.com/geniusyield/atlas/blob/main/tests-unified/GeniusYield/Test/Unified/BetRef/).
+Mind you we are using [`tasty`](https://hackage.haskell.org/package/tasty) to write tests.
+</Callout>
+
+Our objective here would be to write test cases for one of two main operations
+from the `bet-ref` example - namely for placing bet operation.
+
+### Testing environment
+
+Unified testing hides implementation details specific to ledger backends under
+a layer of abstraction. Regardless of the backend we ultimately choose there is
+`TestInfo` datatype that provides access to user wallets among other things.
+A wallet is represented by `User` datatype that holds signing keys, address,
+and collateral to use:
+
+```haskell
+data TestInfo = TestInfo
+  { testGoldAsset :: !GYAssetClass
+  , testIronAsset :: !GYAssetClass
+  , testWallets :: !Wallets }
+
+data Wallets = Wallets
+    { w1 :: !User
+    ... more eighth wallets ...
+    }
+
+data User = User
+    { userPaymentSKey     :: !GYPaymentSigningKey
+    , userStakeSKey       :: !(Maybe GYStakeSigningKey)
+    , userAddresses       :: !(NonEmpty GYAddress)
+    , userChangeAddress   :: !GYAddress
+    , userCollateral      :: Maybe UserCollateral
+    }
+```
+
+Every wallet in `Wallets` will be funded with an initial set of assets:
+* Million ADA.
+* Million `fakeGold`.
+* Million `fakeIron`.
+
+`fakeGold` and `fakeIron` are testing Cardano native assets that might be useful
+(though you can ignore them safely).
+
+In previous sections, we got acquainted with several monads available in Atlas
+namely `GYTxQueryMonad` and `GYTxMonad` that allowed us to query the blockchain
+and to construct transactions. Now it's time to introduce another monad that
+facilitates testing - `GYTxGameMonad`. Its most important action is called
+`asUser` and allows to run computations in `GYTxMonad` using a particular
+wallet (signature is slightly simplified):
+
+```haskell
+asUser :: User -> GYTxMonad a -> m a
+```
+We conventionally call actions in `GYTxGameMonad` "runners" since they run some
+operations by submitting them under a particular user. We will see examples soon.
+
+Then we have two functions that allow us to make a test case for a particular
+backend out of a runner (the signature again is slightly modified here):
+
+```haskell
+mkTestFor :: TestName -> (TestInfo -> GYTxGameMonad a) -> TestTree
+
+mkPrivnetTestFor :: Setup -> TestName ->  (TestInfo -> GYTxGameMonad a) -> TestTree
+```
+
+Both functions take a name for a test case and a continuation function of type
+`TestInfo -> GYTxGameMonad a`. Then they internally generate the environment to
+do the job. The difference is that `mkPrivnetTestFor` also takes a value of type
+`Setup` that contains information about an instance of a private network.
+This highlights an important distinction between them:
+  * `mkTestFor` spawns a new instance of the emulator on every call - that way
+  all test cases will be given with a fresh (new) blockchain ledger state having
+  the above balances to those 9 wallets.
+  * `mkPrivnetTestFor` is supposed to be run inside a helper function
+  `withPrivnet` which spins up a private testnet according to the configuration
+  provided and calls a series of test cases (i.e. the whole test suite) against it.
+
+Let's use these bits to build various test cases for operations
+within `bet-ref` example.
+
+### Defining runner for bet placing operation
+
+Let's start with the runner to test `placeBet` operation. We won't see anything
+new here. It just uses `asUser action` we just learned to run the operation.
+We need values of all arguments that our operation takes. We cannot know them, so
+we just take all of them as arguments to the runner itself, except the address as
+it can be obtained using `ownAddresses` function. This function  gives back all
+the addresses of the wallet (`User`) that we provide to `asUser`.
+Once we get the result of the operation, we can build, sign, and submit a transaction.
+Here, again, the wallet we specified to `asUser` action is used to sign it
+(though you can add additional signatures manually).
+Let's take a look at the code (you can find the full version in the sources,
+here it's slightly redacted for simplicity).
+
+```haskell
+-- | Run to call the `placeBet` operation.
+runPlaceBet
+  :: GYTxGameMonad m                   -- We write runners in `GYTxGameMonad` monad
+  => GYTxOutRef                        -- ^ Script output reference
+  -> BetRefParams                      -- ^ Parameters
+  -> OracleAnswerDatum                 -- ^ Bet guess
+  -> GYValue                           -- ^ Bet value
+  -> Maybe GYTxOutRef                  -- ^ Ref output with existing bets
+  -> User                              -- ^ User that plays bet
+  -> m GYTxId
+runPlaceBet refScript brp guess bet mPrevBets user =
+  asUser user $ do
+    -- Get the address
+    addr <- maybeM (throwAppError $ someBackendError "No own addresses")
+      pure  $ listToMaybe <$> ownAddresses
+    -- Call the operation
+    skeleton <- placeBet refScript brp guess bet addr mPrevBets
+    -- Submit the transaction
+    buildTxBody skeleton >>= signAndSubmitConfirmed
+```
+### Additional runners
+
+Let's take a look at the arguments our runner takes:
+
+```haskell
+runPlaceBet
+  :: GYTxOutRef                        -- ^ Script output reference
+  -> BetRefParams                      -- ^ Parameters
+  -> OracleAnswerDatum                 -- ^ Bet guess
+  -> GYValue                           -- ^ Bet value
+  -> Maybe GYTxOutRef                  -- ^ Ref output with existing bets
+  -> User                              -- ^ User that plays bet
+  -> m GYTxId
+```
+Bet guess, value, existing bets, and the user that plays a bet pertain to the
+test case, so we should somehow pick or generate values for them
+(we will just use some sensible values in this example).
+But the first argument of type `GYTxOutRef` can't seem to be easy to know.
+It's the transaction output reference (transaction hash and output index number)
+that should contain a reference script on the ledger. To create it we need to build
+and submit another transaction.
+
+So we need another runner that applies the script to arguments, builds a transaction
+that will deploy it, sign and submits it. Let's pretend we don't have such an operation
+to build a transaction to deploy within our application but what we have is
+a function that makes the script. Notice the use `GYTxQueryMonad` here since all that function
+needs is only to figure out the current slot in the ledger to make the calculations:
+
+```haskell
+-- | Queries the current slot, calculates the parameters, and builds
+-- a script that is ready to be deployed.
+mkScript
+  :: GYTxQueryMonad m
+  => Integer        -- ^ How many slots betting should be open
+  -> Integer        -- ^ How many slots should pass before oracle reveals answer
+  -> GYPubKeyHash   -- ^ Oracle PKH
+  -> GYValue        -- ^ Bet step value
+  -> m (BetRefParams, GYScript PlutusV2)
+mkScript betUntil betReveal oraclePkh betStep = do
+ ... [the body is omitted] ...
+```
+
+It takes several parameters that define the process of betting,
+does some calculations, and gives us back all the parameters of type `BetRefParams`
+and also `GYScript PlutusV2` which is the script we can deploy. So in this case
+we have to build the transaction directly within the runner. Fortunately,
+we can use `addRefScript` function that does exactly what we need:
+
+```haskell
+-- | Runner to build and submit a transaction that deploys the reference script.
+runDeployScript
+  :: GYTxGameMonad m
+  => Integer                        -- ^ Bet Until slot
+  -> Integer                        -- ^ Bet Reveal slot
+  -> GYValue                        -- ^ Bet step value
+  -> Wallets
+  -> m (BetRefParams, GYTxOutRef)
+runDeployScript betUntil betReveal betStep ws = do
+  (params, script) <- mkScript betUntil betReveal (userPkh $ oracle ws) betStep
+  asUser (admin ws) $ do
+    let sAddr = userAddr (holder ws)
+    refScript <- addRefScript sAddr script
+    pure (params, refScript)
+```
+
+This runner doesn't call any application operations, but now we can run it
+before our main runner `runPlaceBet` since it returns both `BetRefParams`
+and `GYTxOutRef` we need to call the main runner and ultimately `placeBet`
+operation.
+
+### Place first bet test
+
+Now we are finally ready to write our first test.
+It should first use `runDeployScript` to calculate and deploy the script
+and then run the main runner `runPlaceBet`
+checking that a transaction goes through and the balance of the user
+that submits it gets smaller accordingly
+(of course, we could imagine other checks as well).
+
+```haskell
+-- | Test for placing the first bet.
+firstBetTest
+  :: GYTxGameMonad m
+  => Integer
+  -> Integer
+  -> GYValue
+  -> OracleAnswerDatum
+  -> GYValue
+  -> TestInfo
+  -> m ()
+firstBetTest betUntil betReveal betStep dat bet (testWallets -> ws@Wallets{w1}) = do
+  (brp, refScript) <- runDeployScript betUntil betReveal betStep ws
+  withWalletBalancesCheckSimple [w1 := valueNegate bet] $ do
+    void $ runPlaceBet refScript brp dat bet Nothing w1
+```
+
+The code almost verbatim repeats what we just said using the function `withWalletBalancesCheckSimple`[^1].
+It allows checking the change of wallet's balance with no caring about transaction and storage fees 
+(the latter is also known as minimal ADA - the number of coins that should accompany Cardano native tokens).
+This convenience is possible because Atlas manages its own record of
+all fees that were spent over the course of tests, so they can be accounted
+automatically. This way we just provide the expected delta in balance by negating
+bet's value. More precisely this function takes a list of tuples[^2] where the first element
+of the tuple is the wallet and the second element denotes the difference in
+the wallet's value which we expect after the execution of the operation
+defined inside its `do` block. 
+Here we want the balance of wallet 1 (which is the one calling this operation)
+to decrease with the bet amount and also the fees.
+
+We specify all parameters when defining a test case:
+
+```haskell
+placeBetTests :: TestTree
+placeBetTests = testGroup "Place Bet (Emulator)"
+    [ mkTestFor "Balance checks after placing first bet" firstBetTest'
+    ]
+
+firstBetTest' :: GYTxGameMonad m => TestInfo -> m ()
+firstBetTest' = firstBetTest
+  40
+  100
+  (valueFromLovelace 200_000_000)
+  (OracleAnswerDatum 3)
+  (valueFromLovelace 20_000_000)
+```
+
+Use the following command to observe test's results (being granted you are inside a Nix
+shell):
+
+```bash
+$ cabal run atlas-unified-tests -- -p 'Emulator.Place bet.Placing first bet'
+```
+
+
+### Multiple bets test
+
+Now let's write a slightly more involved test. This time we want to make sure
+that many bets placed in a raw using different wallets can be submitted and the
+balances of the wallets change accordingly.
+
+Let's start with defining some additional type aliases to save up space:
+
+```haskell
+-- This is an alias for fields of `Wallet` datatype
+type Wallet = Wallets -> User
+
+-- This type represent a bet made by a wallet
+type Bet = (Wallet, OracleAnswerDatum, GYValue)
+```
+
+Now we want to write a function `mkMultipleBetsTest`, we can pass a list
+of concrete bets to build a test case:
+
+```haskell
+multipleBetsTest :: GYTxGameMonad m => TestInfo -> m ()
+multipleBetsTest TestInfo{..} = mkMultipleBetsTest
+  400 1_000 (valueFromLovelace 10_000_000) -- game params
+  -- list of bets
+  [ (w1, OracleAnswerDatum 1, valueFromLovelace 10_000_000)
+  , (w2, OracleAnswerDatum 2, valueFromLovelace 20_000_000)
+  , (w3, OracleAnswerDatum 3, valueFromLovelace 30_000_000)
+  , (w2, OracleAnswerDatum 4, valueFromLovelace 50_000_000)
+  , (w4, OracleAnswerDatum 5, valueFromLovelace 65_000_000
+                                <> valueSingleton testGoldAsset 1_000)
+  ]
+  testWallets
+```
+
+As usual, let's commence with a runner. We already have a runner for placing a
+single bet so we can reuse it:
+
+```haskell
+-- | Runner for multiple bets.
+runMultipleBets
+  :: GYTxGameMonad m
+  => BetRefParams
+  -> GYTxOutRef                 -- ^ Reference script
+  -> [Bet]
+  -> Wallets
+  -> m ()
+runMultipleBets brp refScript bets ws = go bets True
+  where
+    go [] _ = return ()
+    go ((getWallet, dat, bet) : remBets) isFirst = do
+      if isFirst then do
+        gyLogInfo' "" "placing the first bet"
+        void $ runPlaceBet refScript brp dat bet Nothing (getWallet ws)
+        go remBets False
+      else do
+        gyLogInfo' "" "placing a next bet"
+        -- need to get previous bet utxo
+        betRefAddr <- betRefAddress brp
+        GYUTxO{utxoRef} <- head . utxosToList <$> utxosAtAddress betRefAddr Nothing
+        gyLogDebug' "" $ printf "previous bet utxo: %s" utxoRef
+        void $ runPlaceBet refScript brp dat bet (Just utxoRef) (getWallet ws)
+        go remBets False
+
+```
+The runner recursively traverses the list of bets, calling `runPlaceBet` on every
+element, indicating whether it is the first element or not using the last
+parameter of `go`. Once we have the runner at hand we can write the test. We are
+going to skip some details to handle balances, you can find the full version in
+the source code.
+
+```haskell
+-- | Makes a test case for placing multiple bets.
+mkMultipleBetsTest
+  :: GYTxGameMonad m
+  => Integer                 -- ^ Number of slots for betting
+  -> Integer                 -- ^ Number of slots for revealing
+  -> GYValue                 -- ^ Bet step
+  -> [Bet]                   -- ^ List denoting the bets
+  -> Wallets                 -- ^ Wallets available
+  -> m ()
+mkMultipleBetsTest betUntil betReveal betStep bets ws = do
+  -- Deploy script
+  (brp, refScript) <- runDeployScript betUntil betReveal betStep ws
+  -- Get the balance
+  balanceBefore <- getBalance
+  gyLogDebug' "" $ printf "balanceBeforeAllTheseOps: %s" (mconcat balanceBefore)
+  -- Run operations
+  runMultipleBets brp refScript bets ws
+  -- Get the balance again
+  balanceAfter <- getBalance
+  gyLogDebug' "" $ printf "balanceAfterAllTheseOps: %s" (mconcat balanceAfter)
+  -- Check the difference
+  verify $ zip3
+    walletsAndBets
+    balanceBefore
+    balanceAfter
+  where
+    ... some balance-related functions are omitted here ...
+
+    -- | Function to verify that the wallet indeed lost by /roughly/ the bet amount.
+    -- We say /roughly/ as fees is assumed to be within (0, 1 ada].
+    verify :: GYTxGameMonad m => [((User, GYValue), GYValue, GYValue)] -> m ()
+    verify [] = return ()
+    verify (((wallet, diff), vBefore, vAfter) : xs) =
+      let vAfterWithoutFees = vBefore <> diff
+          (expectedAdaWithoutFees, expectedOtherAssets) = valueSplitAda vAfterWithoutFees
+          (actualAda, actualOtherAssets) = valueSplitAda vAfter
+          threshold = 1_000_000  -- 1 ada
+      in
+        if expectedOtherAssets == actualOtherAssets
+            && actualAda < expectedAdaWithoutFees
+            && expectedAdaWithoutFees - threshold <= actualAda
+        then verify xs
+        else
+          throwAppError . someBackendError . T.pack $
+            printf "For wallet %s expected value (without fees) %s but actual is %s"
+              (show $ userAddr wallet)
+              (show vAfterWithoutFees)
+              (show vAfter)
+```
+
+Use the following command to observe the test's results (being granted you are inside a Nix
+shell):
+
+```bash
+$ cabal run atlas-unified-tests -- -p 'Emulator.Place bet.Multiple bets'
+```
+
+### Writing negative tests
+
+But sometimes we want a test to fail! What happens if the newly placed bet is
+not more than at least `brpBetStep` amount? What happens if the transaction
+skeleton is somewhat wrong, say we didn't put `mustBeSignedBy`? What if someone
+tries to place a bet after `brpBetUntil`? What if...
+
+Let's add another test:
+
+```haskell
+failingMultipleBetsTest :: GYTxGameMonad m => TestInfo -> m ()
+failingMultipleBetsTest TestInfo{..} = mkMultipleBetsTest
+  400 1_000 (valueFromLovelace 10_000_000)
+  [ (w1, OracleAnswerDatum 1, valueFromLovelace 10_000_000)
+  , (w2, OracleAnswerDatum 2, valueFromLovelace 20_000_000)
+  , (w3, OracleAnswerDatum 3, valueFromLovelace 30_000_000)
+  , (w2, OracleAnswerDatum 4, valueFromLovelace 50_000_000)
+  , (w4, OracleAnswerDatum 5, valueFromLovelace 55_000_000
+                                <> valueSingleton testGoldAsset 1_000)
+  ]
+  testWallets
+```
+If we run it we will get an error, since the last bet doesn't respect the minimal
+bet step which is `10_000_000` lovelaces. Well for all such cases, we can assert
+that a given trace must fail. It's done slightly differently for the emulator and
+a private test network. For the emulator we just use `mustFail`:
+
+```haskell
+placeBetTestsClb :: TestTree
+placeBetTestsClb = testGroup "Place bet"
+    [ mkTestFor "Multiple bets - to small step" $ mustFail . failingMultipleBetsTest
+    ]
+```
+
+For a private testnet it's more wordy:
+
+```haskell
+placeBetTests :: Setup -> TestTree
+placeBetTests setup = testGroup "Place bet"
+    [ mkPrivnetTestFor' "Multiple bets - too small step" GYDebug setup $
+        handleError
+          (\case
+              GYBuildTxException GYBuildTxBodyErrorAutoBalance {} -> pure ()
+              e -> throwError e
+          )
+        . failingMultipleBetsTest
+    ]
+
+```
+
+This section concludes our journey to testing dApps with Atlas.
+
+[^1]: If you were to have fine-grained control over balance change, use `withWalletBalancesCheck` instead.
+
+[^2]: To convey the message better, we have a defined [`(:=)`](https://haddock.atlas-app.io/GeniusYield-Test-Utils.html#v::-61-) pattern synonym:
+
+      ```haskell
+      pattern (:=) :: x -> y -> (x, y)
+      pattern (:=) x y = (x, y)
+      ```
