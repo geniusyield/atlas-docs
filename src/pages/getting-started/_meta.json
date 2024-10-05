@@ -4,5 +4,11 @@
   "operations": "Operations over Contract",
   "testing": "Testing",
   "endpoints": "Creating Endpoints",
-  "browser-integration": "Browser Integration"
+  "browser-integration": "Browser Integration",
+  "unit-tests": {
+    "display": "hidden"
+  },
+  "integration-tests": {
+    "display": "hidden"
+  }
 }
