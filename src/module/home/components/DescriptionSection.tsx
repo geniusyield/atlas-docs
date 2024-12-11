@@ -51,7 +51,7 @@ const DescriptionSection: FC = () => (
       <FirstColumn container display="flex" flexDirection="row" maxWidth="1464px" padding="50px" overflow="hidden">
         <TextWithIcon
           title="Always up to date"
-          subtitle="Benefit from Cardano's latest innovations such as Reference Inputs, Inline Datum and Reference Scripts."
+          subtitle="Benefit from Cardano's latest innovations such as Reference Inputs, Governance actions and so on."
           image={
             <img className="blueLogo" alt="alwaysUpToDate" src={"/images/descriptionSection/AlwaysUpToDate.png"} />
           }
@@ -80,7 +80,7 @@ const DescriptionSection: FC = () => (
 
           <TextWithIcon
             title="Unit tests"
-            subtitle="Write realistic tests true to onchain behavior with Atlas' test harness framework based on Plutus Simple Model."
+            subtitle="Write realistic tests true to onchain behavior utilizing Cardano ledger backend."
             image={
               <img
                 className="blueLogo"
@@ -234,7 +234,7 @@ const RightRow = styled(Grid)(({ theme }) => ({
   },
 }));
 
-const IllustrationWrapper = styled(Grid)(({}) => ({
+const IllustrationWrapper = styled(Grid)(({ }) => ({
   margin: "0 auto",
 }));
 
