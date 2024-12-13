@@ -234,7 +234,7 @@ const RightRow = styled(Grid)(({ theme }) => ({
   },
 }));
 
-const IllustrationWrapper = styled(Grid)(({ }) => ({
+const IllustrationWrapper = styled(Grid)(({}) => ({
   margin: "0 auto",
 }));
 
