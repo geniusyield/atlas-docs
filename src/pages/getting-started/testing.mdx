@@ -109,6 +109,8 @@ Mind you we are using [`tasty`](https://hackage.haskell.org/package/tasty) to wr
 Our objective here would be to write test cases for one of two main operations
 from the `bet-ref` example - namely for placing bet operation.
 
+The test-suite given can be executed with `cabal run betref-tests` command. Do note that, in the initial setup, you would notice an initial test failure, this is due to a quirk in the workings of [`cardano-testnet`](https://github.com/IntersectMBO/cardano-node/tree/master/cardano-testnet) when spinning up private testnet and should be ignored. Note that before running this command, make sure that you have required version of `cardano-cli` & `cardano-node` installed and available inside your path, use `cabal install --package-env=$(pwd) --overwrite-policy=always cardano-cli cardano-node` from the root of the `atlas-examples` repository to achieve that.
+
 ### Testing environment
 
 Unified testing hides implementation details specific to ledger backends under
@@ -343,14 +345,6 @@ firstBetTest' = firstBetTest
   (valueFromLovelace 20_000_000)
 ```
 
-Use the following command to observe test's results (being granted you are inside a Nix
-shell):
-
-```bash
-$ cabal run atlas-unified-tests -- -p 'Emulator.Place bet.Placing first bet'
-```
-
-
 ### Multiple bets test
 
 Now let's write a slightly more involved test. This time we want to make sure
@@ -470,13 +464,6 @@ mkMultipleBetsTest betUntil betReveal betStep bets ws = do
               (show $ userAddr wallet)
               (show vAfterWithoutFees)
               (show vAfter)
-```
-
-Use the following command to observe the test's results (being granted you are inside a Nix
-shell):
-
-```bash
-$ cabal run atlas-unified-tests -- -p 'Emulator.Place bet.Multiple bets'
 ```
 
 ### Writing negative tests
