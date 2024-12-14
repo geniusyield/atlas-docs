@@ -14,7 +14,7 @@ The approach here would be
 We'll use [Servant](https://docs.servant.dev/en/stable/) to create our endpoints and one may understand it by following their easy to understand tutorial [here](https://docs.servant.dev/en/stable/tutorial/index.html).
 
 <Callout>
-Do note that we can also sign the transactions in server using the `signTx` function defined in [`GeniusYield.Types.TxBody`](https://haddock.atlas-app.io/GeniusYield-Types-TxBody.html) module.
+Do note that we can also sign the transactions in server using the `signGYTxBody` function defined in [`GeniusYield.Types.TxBody`](https://haddock.atlas-app.io/GeniusYield-Types-TxBody.html) module.
 </Callout>
 
 ## Providing Data Provider
@@ -137,9 +137,9 @@ We then see the use of an interesting function `withCfgProviders`. It's type is 
 Entire code for it is available [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/server-lib/BetRef/Api/Context.hs)
 </Callout>
 
-Our endpoints would need an information for our provider, thus we have created the type for it, called `Ctx`. It's usage is made clear by function defined next, `runQuery` which in essence correspond to `ctxRunC` we saw in section on [Integration Tests](./integration-tests.mdx). Reasoning for `runTxI` & `runTxF` follows similarly.
+Our endpoints would need an information for our provider, thus we have created the type for it, called `Ctx`. It's usage is made clear by function defined next, `runQuery` and `runTx`.
 
-Note about our handling of collateral: Browser wallets usually have the option to set for collateral, in such a case wallets would create an UTxO specifically to be used as collateral and such an UTxO will be reserved, i.e., wallet won't be spending it. [CIP 40](https://cips.cardano.org/cips/cip40/) changed the properties related to collateral and therefore we can safely take even that UTxO as collateral which has large amounts of ada and it could also contain multiple assets. Therefore if there is no collateral set by browser wallet, framework is capable of choosing suitable UTxO as collateral (and also sets for return collateral & total collateral fields appropriately) and in that case it is also free to spend it, if required by transaction builder. But if however there is a 5-ada collateral set by wallet, then framework would use it as collateral and would also reserve it, i.e., it won't pick to spend it unless explicitly mentioned by transaction skeleton. Also note that, we'll use browser wallet's `getCollateral()` method to get for collateral. This method usually returns a list of ada-only UTxOs in wallet within a specific range (like in case of Nami, it is those with ada less than or equal to 50). We would send first element of this list (if exists) to backend and framework would check if the value contained in this UTxO is exactly 5 ada or not (like Nami's `getCollateral` method returns only a singleton list if collateral is set in wallet), if not, framework would ignore this (i.e., would not reserve for it) and would itself pick suitable UTxO as collateral. If however you want this to be reserved (& of course used as collateral) regardless of it's value, see the comment in call to `runGYTxMonadNodeF` in `runTxF` function.
+Note about our handling of collateral: Browser wallets usually have the option to set for collateral, in such a case wallets would create an UTxO specifically to be used as collateral and such an UTxO will be reserved, i.e., wallet won't be spending it. [CIP 40](https://cips.cardano.org/cips/cip40/) changed the properties related to collateral and therefore we can safely take even that UTxO as collateral which has large amounts of ada and it could also contain multiple assets. Therefore if there is no collateral set by browser wallet, framework is capable of choosing suitable UTxO as collateral (and also sets for return collateral & total collateral fields appropriately) and in that case it is also free to spend it, if required by transaction builder. But if however there is a 5-ada collateral set by wallet, then framework would use it as collateral and would also reserve it, i.e., it won't pick to spend it unless explicitly mentioned by transaction skeleton. Also note that, we'll use browser wallet's `getCollateral()` method to get for collateral. This method usually returns a list of ada-only UTxOs in wallet within a specific range (like in case of Nami, it is those with ada less than or equal to 50). We would send first element of this list (if exists) to backend and framework would check if the value contained in this UTxO is exactly 5 ada or not (like Nami's `getCollateral` method returns only a singleton list if collateral is set in wallet), if not, framework would ignore this (i.e., would not reserve for it) and would itself pick suitable UTxO as collateral. If however you want this to be reserved (& of course used as collateral) regardless of it's value, see the comment in call to `runGYTxBuilderMonadIO` in `runTx` function.
 
 ```haskell
 -- | Our Context.
@@ -149,39 +149,40 @@ data Ctx = Ctx
   }
 
 -- | To run for simple queries, the one which don't requiring building for transaction skeleton.
-runQuery :: Ctx -> GYTxQueryMonadNode a -> IO a
+runQuery :: Ctx -> GYTxQueryMonadIO a -> IO a
 runQuery ctx q = do
-  let nid       = cfgNetworkId $ ctxCoreCfg ctx
+  let nid = cfgNetworkId $ ctxCoreCfg ctx
       providers = ctxProviders ctx
-  runGYTxQueryMonadNode nid providers q
+  runGYTxQueryMonadIO nid providers q
 
--- | Wraps our skeleton under `Identity` and calls `runTxF`.
-runTxI :: Ctx
-       -> [GYAddress]           -- ^ User's used addresses.
-       -> GYAddress             -- ^ User's change address.
-       -> Maybe GYTxOutRefCbor  -- ^ Browser wallet's reserved collateral (if set).
-       -> GYTxMonadNode (GYTxSkeleton v)
-       -> IO GYTxBody
-runTxI = coerce (runTxF @Identity)
-
--- | Tries to build for given skeletons wrapped under traversable structure.
-runTxF :: Traversable t
-       => Ctx
-       -> [GYAddress]           -- ^ User's used addresses.
-       -> GYAddress             -- ^ User's change address.
-       -> Maybe GYTxOutRefCbor  -- ^ Browser wallet's reserved collateral (if set).
-       -> GYTxMonadNode (t (GYTxSkeleton v))
-       -> IO (t GYTxBody)
-runTxF ctx addrs addr collateral skeleton  = do
-  let nid       = cfgNetworkId $ ctxCoreCfg ctx
+-- | Tries to build for given skeleton.
+runTx ::
+  Ctx ->
+  -- | User's used addresses.
+  [GYAddress] ->
+  -- | User's change address.
+  GYAddress ->
+  -- | Browser wallet's reserved collateral (if set).
+  Maybe GYTxOutRefCbor ->
+  GYTxBuilderMonadIO (GYTxSkeleton v) ->
+  IO GYTxBody
+runTx ctx addrs addr collateral skeleton = do
+  let nid = cfgNetworkId $ ctxCoreCfg ctx
       providers = ctxProviders ctx
-  runGYTxMonadNodeF GYRandomImproveMultiAsset nid providers addrs addr
-    (collateral >>=
-      (\c -> Just (getTxOutRefHex c,
-                   True  -- Make this as `False` to not do 5-ada-only check for value in this given UTxO to be used as collateral.
+  runGYTxBuilderMonadIO
+    nid
+    providers
+    addrs
+    addr
+    ( collateral
+        >>= ( \c ->
+                Just
+                  ( getTxOutRefHex c
+                  , True -- Make this as `False` to not do 5-ada-only check for value in this given UTxO to be used as collateral.
                   )
-      )
-    ) skeleton
+            )
+    )
+    (skeleton >>= buildTxBody)
 ```
 
 ## Submit Endpoint

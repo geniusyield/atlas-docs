@@ -12,8 +12,16 @@ Let's now start by writing a smart contract that we will use to convey framework
 
 <Callout>
 
-  Here we'll be writing our smart contract in Haskell but do note that we are not limited to it. You for instance could write your smart contract in any language of your choice and read the compiled CBOR using `scriptFromCBOR` function defined [here](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) ([Operations over Contract](./operations.mdx) chapter explains about types such as `GYScript`, `PlutusVersion` which are used in this function). Similarly, there is `readScript` defined in the [same](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) file to read from the compiled [text envelope](https://cardano-api.cardano.intersectmbo.org/cardano-api/Cardano-Api-SerialiseTextEnvelope.html#t:TextEnvelope) file.
+  Here we'll be writing our smart contract in Plutus-tx (aka Plinth) but do note that we are not limited to it. If you are using [Aiken](https://aiken-lang.org/), check out our [Blueprint](./../additional-features/blueprint) section to see how easily Aiken validators can be plugged into Atlas, also supporting creation of high level Haskell types corresponding to blueprint schema.
+  
+  And in general, one can read the compiled validator's CBOR using `scriptFromCBOR` function defined [here](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) ([Operations over Contract](./operations.mdx) chapter explains about types such as `GYScript`, `PlutusVersion` which are used in this function). Similarly, there is `readScript` defined in the [same](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) file to read from the compiled [text envelope](https://cardano-api.cardano.intersectmbo.org/cardano-api/Cardano-Api-SerialiseTextEnvelope.html#t:TextEnvelope) file.
+  
+  Note that if your validator is written in Plutarch, we recommend [Ply](https://github.com/geniusyield/ply) to read Plutarch compiled scripts. In particular, check out [this](https://github.com/geniusyield/dex-contracts-api/blob/main/geniusyield-dex-api/src/GeniusYield/Scripts/Common.hs) example where GeniusYield reads it's plutarch validators into Atlas.
 
+</Callout>
+
+<Callout type="info">
+Besides Plutus scripts, Atlas also supports Simple scripts. Check out [Simple Scripts](../additional-features/simple-scripts) section to learn more!
 </Callout>
 
 ## Contract Description
@@ -26,7 +34,7 @@ The smart contract code is available [here](https://github.com/geniusyield/atlas
 
 <Callout type="info">
 
-  Since the underlying version of `plutus` library we are using defaults to version 1.1.0 of plutus core, we need to explicitly set [`target-version`](https://plutus.readthedocs.io/en/latest/reference/writing-scripts/compiler-options.html) to 1.0.0, and that is why there is `ghc-options: -fplugin-opt PlutusTx.Plugin:target-version=1.0.0` in [our cabal file](https://github.com/geniusyield/atlas-examples/blob/main/bet-ref/betref.cabal).
+  Since the underlying version of `plutus` library we are using defaults to version 1.1.0 of plutus core, we need to explicitly set [`target-version`](https://plutus.readthedocs.io/en/latest/reference/writing-scripts/compiler-options.html) to 1.0.0 (as this example uses Plutus V2 ledger version, but Atlas also supports Plutus V3), and that is why there is `ghc-options: -fplugin-opt PlutusTx.Plugin:target-version=1.0.0` in [our cabal file](https://github.com/geniusyield/atlas-examples/blob/main/bet-ref/betref.cabal).
 
 </Callout>
 
@@ -47,7 +55,7 @@ data BetRefParams = BetRefParams
   , brpBetReveal :: POSIXTime   -- ^ Time at which Oracle will reveal the correct match result.
   , brpBetStep   :: Value       -- ^ Each newly placed bet must be more than previous bet by `brpBetStep` amount.
   }
-PlutusTx.makeLift ''BetRefParams
+PlutusTx.unstableMakeIsData ''BetRefParams
 ```
 
 ### Reference Input Datum

@@ -35,21 +35,10 @@ betRefValidator betRefParams =
     $$(PlutusTx.compile [|| mkBetRefValidator||]) `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion100 betRefParams
 ```
 
-Note that since spending validator takes in a datum, redeemer and a script context and thus it's type signature, `PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())` takes three `PlutusTx.BuiltinData`. We encapsulate it with `GYValidator` inside framework.
+Inside Atlas, Plutus scripts are represented as [`GYScript (v :: PlutusVersion)`](https://haddock.atlas-app.io/GeniusYield-Types-Script.html#t:GYScript).
+The mentioned [`GeniusYield.Types.Script`](https://haddock.atlas-app.io/GeniusYield-Types-Script.html) module contains a lot of helper utilities such as `scriptFromPlutus` which takes in Plutus's `PlutusTx.CompiledCode a` type to give out `GYScript v` where type variable `v` is of _kind_ `PlutusVersion` which is defined in [`GeniusYield.Types.PlutusVersion`](https://haddock.atlas-app.io/GeniusYield-Types-PlutusVersion.html) module and is used to tag plutus ledger version of our validator script[^1].
 
-Likewise minting policies and stake validators take in only redeemer and script context, thus having type `PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())` which is represented in Atlas as `GYMintingPolicy` and `GYStakeValidator` respectively.
-
-`GYValidator`, `GYMintingPolicy` and `GYStakeValidator` are nothing but `newtype` wrapper around `GYScript` where `GYScript` holds information of raw serialized Plutus script, [version of Plutus ledger language](https://plutus.readthedocs.io/en/latest/explanations/language-versions.html#what-are-plutus-language-versions) and script's hash.
-
-Thus encapsulating `GYScript` under say `GYValidator` gives us additional context regarding script's purpose. 
-
-<Callout type="info">
-  Checkout [`GeniusYield.Types.Script`](https://haddock.atlas-app.io/GeniusYield-Types-Script.html) module for definitions of these types and corresponding helper utilities.
-</Callout>
-
-The mentioned `GeniusYield.Types.Script` module contains a lot of helper utilities such as `validatorFromPlutus` which takes in Plutus's `PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())` type to give out `GYValidator`. Though there has been slight abuse in mentioning type here as what is actually given out is `GYValidator v` where type variable `v` is of _kind_ `PlutusVersion` which is defined in [`GeniusYield.Types.PlutusVersion`](https://haddock.atlas-app.io/GeniusYield-Types-PlutusVersion.html) module and is used to tag plutus ledger version of our validator script[^1].
-
-If we look at the type signature of `validatorFromPlutus`, we see: `validatorFromPlutus :: forall v. SingPlutusVersionI v => PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ()) -> GYValidator v` where for the time being we can ignore the description of the typeclass `SingPlutusVersionI`[^1] besides noting the fact that only types (currently `'PlutusV1` & `'PlutusV2`) of kind `PlutusVersion` have an instance for it. So here, our function `validatorFromPlutus` works for all type variable `v` which have an instance of `SingPlutusVersionI` but there is no way to learn what this `v` is based solely on the input `PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())` and therefore, caller must specify it, either by providing type signature (of callee or caller due to type inference) or by using [visible type application](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/type_applications.html). Our first operation does make use of it but before looking at it, we need to understand about `GYTxQueryMonad`.
+If we look at the type signature of `scriptFromPlutus`, we see: `scriptFromPlutus :: forall v a. SingPlutusVersionI v => PlutusTx.CompiledCode a -> GYScript v` where for the time being we can ignore the description of the typeclass `SingPlutusVersionI`[^1] besides noting the fact that only types (currently `'PlutusV1`, `'PlutusV2` & `'PlutusV3`) of kind `PlutusVersion` have an instance for it. So here, our function `scriptFromPlutus` works for all type variable `v` which have an instance of `SingPlutusVersionI` but there is no way to learn what this `v` is based solely on the input `PlutusTx.CompiledCode a` and therefore, caller must specify it, either by providing type signature (of callee or caller due to type inference) or by using [visible type application](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/type_applications.html). Our first operation does make use of it but before looking at it, we need to understand about `GYTxQueryMonad`.
 
 ### Interlude - `GYTxQueryMonad`
 
@@ -66,7 +55,7 @@ So, if we are working inside a monad which happens to also provide an instance f
 In this operation, we only need to obtain network details with the help of this monad. Here is the code to obtain address (notice that we have provided multiple versions of the same code here):
 
 <Callout type="info">
-  Type of [`scriptAddress`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#v:scriptAddress) used below is `scriptAddress :: forall (m :: * -> *) (v :: PlutusVersion). GYTxQueryMonad m => GYValidator v -> m GYAddress`. Thus with respect to type application, the first parameter is for monad and second one is `PlutusVersion` kinded.
+  Type of [`scriptAddress`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#v:scriptAddress) used below is `scriptAddress :: forall (m :: * -> *) (v :: PlutusVersion). GYTxQueryMonad m => GYScript v -> m GYAddress`. Thus with respect to type application, the first parameter is for monad and second one is `PlutusVersion` kinded.
 
   Internally this function queries for network details.
 </Callout>
@@ -77,8 +66,8 @@ In this operation, we only need to obtain network details with the help of this 
     -- A. Type is given by `scriptAddress`.
 
     -- | Validator in question, obtained after giving required parameters.
-    betRefValidator' ::  SingPlutusVersionI v => BetRefParams -> GYValidator v
-    betRefValidator' brp = validatorFromPlutus $ betRefValidator brp
+    betRefValidator' ::  SingPlutusVersionI v => BetRefParams -> GYScript v
+    betRefValidator' brp = scriptFromPlutus $ betRefValidator brp
 
     -- | Address of the validator, given params.
     betRefAddress :: (HasCallStack, GYTxQueryMonad m) => BetRefParams -> m GYAddress
@@ -87,10 +76,10 @@ In this operation, we only need to obtain network details with the help of this 
   </Tab>
   <Tab>
     ```haskell
-    -- B. Type is given by `validatorFromPlutus` using type application.
+    -- B. Type is given by `scriptFromPlutus` using type application.
 
     -- | Validator in question, obtained after giving required parameters.
-    betRefValidator' brp = validatorFromPlutus @'PlutusV2 $ betRefValidator brp
+    betRefValidator' brp = scriptFromPlutus @'PlutusV2 $ betRefValidator brp
 
     -- | Address of the validator, given params.
     betRefAddress :: (HasCallStack, GYTxQueryMonad m) => BetRefParams -> m GYAddress
@@ -102,8 +91,8 @@ In this operation, we only need to obtain network details with the help of this 
     -- C. Type is specified using signature.
 
     -- | Validator in question, obtained after giving required parameters.
-    betRefValidator' :: BetRefParams -> GYValidator 'PlutusV2
-    betRefValidator' brp = validatorFromPlutus $ betRefValidator brp
+    betRefValidator' :: BetRefParams -> GYScript 'PlutusV2
+    betRefValidator' brp = scriptFromPlutus $ betRefValidator brp
 
     -- | Address of the validator, given params.
     betRefAddress :: (HasCallStack, GYTxQueryMonad m) => BetRefParams -> m GYAddress
@@ -190,7 +179,7 @@ Note that we have mentioned the value as empty for this UTxO and this is one of 
 
 <details>
   <summary> Toggle Answer </summary>
-  Given the output address `addr :: GYAddress{:haskell}` and the Plutus V2 validator `script :: GYValidator 'PlutusV2{:haskell}`, we can write `mustHaveOutput $ GYTxOut addr mempty (Just (datumFromPlutusData (), GYTxOutDontUseInlineDatum)) (Just $ validatorToScript script){:haskell}`
+  Given the output address `addr :: GYAddress{:haskell}` and the Plutus V2 validator `script :: GYScript 'PlutusV2{:haskell}`, we can write `mustHaveOutput $ GYTxOut addr mempty (Just (datumFromPlutusData (), GYTxOutDontUseInlineDatum)) (Just script){:haskell}`
 </details>
 
 ## Operation _3_: Placing a bet
@@ -239,22 +228,24 @@ Thus, we have its definition as:
 
 ```haskell
 -- | Utility function to consume script UTxO.
-input :: BetRefParams -> GYTxOutRef -> GYTxOutRef -> BetRefDatum -> BetRefAction -> GYTxSkeleton 'PlutusV2
+input :: BetRefParams -> GYTxOutRef -> GYTxOutRef -> BetRefDatum -> BetRefAction -> GYTxSkeleton 'PlutusV3
 input brp refScript inputRef dat red =
-  mustHaveInput GYTxIn
-    { gyTxInTxOutRef = inputRef
-    , gyTxInWitness  = GYTxInWitnessScript
-        (GYInReference refScript $ validatorToScript $ betRefValidator' brp)
-        (datumFromPlutusData dat)
-        (redeemerFromPlutusData red)
-    }
+  mustHaveInput
+    GYTxIn
+      { gyTxInTxOutRef = inputRef
+      , gyTxInWitness =
+          GYTxInWitnessScript
+            (GYInReference refScript $ betRefValidator' brp)
+            (datumFromPlutusData dat)
+            (redeemerFromPlutusData red)
+      }
 ```
 
 <Callout type="info">
   In case we didn't want to use reference script, we would write `gyTxInWitness` as: 
   ```haskell
   gyTxInWitness  = GYTxInWitnessScript
-          (GYInScript (validatorToScript $ betRefValidator' brp))
+          (GYInScript (betRefValidator' brp))
           (datumFromPlutusData dat)
           (redeemerFromPlutusData red)
   ```
@@ -339,5 +330,25 @@ We weren't minting any tokens in our example here and thus didn't make use of `m
 ### Withdrawals, Stake Validator & Stake Certificates
 
 We haven't made use of withdrawals, stake certificates and stake validators in our example. A sample illustration is provided in [this](https://github.com/geniusyield/atlas/blob/main/tests-privnet/GeniusYield/Test/Privnet/Stake.hs) privnet test.
+
+## Monad hierarchy
+
+In Atlas we have hierarchy of monads with increasing level of capabilities. We already introduced `GYTxQueryMonad`. Besides it, we also have following monads. Don't worry if it appears overwhelming, they are mainly there for advanced usage and you would very rarely need to bother about their internals.
+
+### [`GYTxUserQueryMonad`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxUserQueryMonad)
+
+`GYTxQueryMonad` is a super-class of [`GYTxUserQueryMonad`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxUserQueryMonad). It is to be used for queries which have access to user's wallet details, such as change address, used addresses and so on. Please have a look at it's haddock entry [here](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxUserQueryMonad) to see for available functions.
+
+### [`GYTxBuilderMonad`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxBuilderMonad)
+
+`GYTxUserQueryMonad` is a superclass of [`GYTxBuilderMonad`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxBuilderMonad). Purpose of `GYTxBuilderMonad` is to allow for functions related to transaction building. This however could have been part of `GYTxUserQueryMonad` but is separate only to allow for different custom transaction building strategy to be used as default. As we will soon see, in our code, we would use [`buildTxBody`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#v:buildTxBody) to build for transaction, and that would be possible only if we are working inside `GYTxBuilderMonad`.
+
+### [`GYTxMonad`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxMonad)
+
+`GYTxBuilderMonad` is a superclass of [`GYTxMonad`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxMonad). Different between `GYTxMonad` and `GYTxBuilderMonad` is that former allows for signing of transactions, thus it requires access to user's private key. The main function we would encounter from this class is [`signAndSubmitConfirmed`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#v:signAndSubmitConfirmed).
+
+### [`GYTxGameMonad`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxMonad)
+
+`GYTxMonad` is a superclass of [`GYTxGameMonad`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#t:GYTxMonad). This monad allows for simulating multiple users, and is mainly used for testing. We touch more on it in our [testing](./testing) section.
 
 [^1]: This is making use of _"singletons"_ and one can read about it from the "Dependent Types" chapter (the last one) in [Thinking with Types](https://thinkingwithtypes.com/) book.

@@ -16,15 +16,14 @@ plenty of techniques and approaches. Let's focus on __levels__ at which we can
 perform testing:
 
   * **Testing of UPLC functions.** You may want to verify that individual functions
-  your validators or minting policies consist of, indeed hold some properties. This is
+  your validators consist of, indeed hold some properties. This is
   useful if your on-chain logic is convoluted and involves complex computations.
   This level is tightly coupled to the language you use to build your smart contracts
-  so you should consult the documentation.
+  so you should consult the respective documentation.
 
   * **Testing of individual contracts (script level).**
   You might want to verify that the on-chain contracts you developed behave as expected
-  in isolation just by calling them with hand-constructed arguments for datum,
-  redeemer, and script context (since they are just functions after all)
+  in isolation just by calling them with hand-constructed arguments (like script context) since they are just functions after all
   and checking the results. Here again, you can use language-specific tools. 
   But in case your contracts are already compiled down to UPLC code, 
   you will need a special testing framework to do that.
@@ -32,16 +31,13 @@ perform testing:
   namely [liqwid-context-builder](https://github.com/Liqwid-Labs/liqwid-libs/tree/main/plutarch-context-builder)
   from Liqwid's Libs mono repo. It allows one to easily construct various transaction contexts
   and verify a result that a particular script evaluates.
-  Testing of individual contracts proved to be very fruitful for both simple
-  and complex applications since it discovers bugs at very early stages
-  even before operations are defined.
 
   * **Testing of operations (transactions).**
   At this level, one can execute whole operations (transactions)
   an application provides and verifies that they a) can run through and
   b) confirm that some conditions we are interested in are held.
   A nice thing to know about Atlas is that it allows you to reuse the code for operations 
-  you created in the previous step [Operations over Contract](./operations.mdx).
+  you created in the previous step, "[Operations over Contract](./operations.mdx)".
   This is the level of testing we discuss in this section.
   You can also make a distinction between testing individual transactions and
   testing a flow of transactions, but in practice, it proves to be hard
@@ -68,10 +64,8 @@ We will call them *ledger backends* throughout the rest of the section:
   It is a cluster of three `cardano-node` instances
   that potentially could support all Cardano features,
   including staking and governance.
-  The main downside of a privnet is that testing time is significantly bigger
-  (minutes not seconds even for simple tests).
-  So it's practically impossible to have a fresh network for every test case
-  but rather for the whole test suite run.
+  The main downside of a privnet is that testing time is significantly bigger and since spawning a testnet is a time-consuming operation, it's practically impossible to have a fresh network for every test case
+  but rather we prefer single testnet for the whole test suite run.
 
 <Callout type="info" emoji="⚠️">
 
@@ -81,8 +75,6 @@ We will call them *ledger backends* throughout the rest of the section:
   is not represented enough in the emulator to carry out all tests.
 
   Fortunately, you can switch easily between two backends with unified testing.
-
-  TODO: add more information on how CLB/privnet differ.
 
 </Callout>
 
@@ -110,12 +102,14 @@ Let's run through an example test suite to get the idea and figure out its detai
 ## Testing placing a bet
 
 <Callout type="warning" emoji="📃">
-You can find the entire code for this example [here](https://github.com/geniusyield/atlas/blob/main/tests-unified/GeniusYield/Test/Unified/BetRef/).
+You can find the entire code for this example [here](https://github.com/geniusyield/atlas-examples/tree/main/bet-ref/tests).
 Mind you we are using [`tasty`](https://hackage.haskell.org/package/tasty) to write tests.
 </Callout>
 
 Our objective here would be to write test cases for one of two main operations
 from the `bet-ref` example - namely for placing bet operation.
+
+The test-suite given can be executed with `cabal run betref-tests` command. Do note that, in the initial setup, you would notice an initial test failure, this is due to a quirk in the workings of [`cardano-testnet`](https://github.com/IntersectMBO/cardano-node/tree/master/cardano-testnet) when spinning up private testnet and should be ignored. Note that before running this command, make sure that you have required version of `cardano-cli` & `cardano-node` installed and available inside your path, use `cabal install --package-env=$(pwd) --overwrite-policy=always cardano-cli cardano-node` from the root of the `atlas-examples` repository to achieve that.
 
 ### Testing environment
 
@@ -196,7 +190,7 @@ Let's start with the runner to test `placeBet` operation. We won't see anything
 new here. It just uses `asUser action` we just learned to run the operation.
 We need values of all arguments that our operation takes. We cannot know them, so
 we just take all of them as arguments to the runner itself, except the address as
-it can be obtained using `ownAddresses` function. This function  gives back all
+it can be obtained using [`ownAddresses`](https://haddock.atlas-app.io/GeniusYield-TxBuilder-Class.html#v:ownAddresses) function. This function  gives back all
 the addresses of the wallet (`User`) that we provide to `asUser`.
 Once we get the result of the operation, we can build, sign, and submit a transaction.
 Here, again, the wallet we specified to `asUser` action is used to sign it
@@ -321,7 +315,7 @@ firstBetTest betUntil betReveal betStep dat bet (testWallets -> ws@Wallets{w1}) 
     void $ runPlaceBet refScript brp dat bet Nothing w1
 ```
 
-The code almost verbatim repeats what we just said using the function `withWalletBalancesCheckSimple`[^1].
+The code almost verbatim repeats what we just said using the function [`withWalletBalancesCheckSimple`](https://haddock.atlas-app.io/GeniusYield-Test-FeeTracker.html#v:withWalletBalancesCheckSimple)[^1].
 It allows checking the change of wallet's balance with no caring about transaction and storage fees 
 (the latter is also known as minimal ADA - the number of coins that should accompany Cardano native tokens).
 This convenience is possible because Atlas manages its own record of
@@ -350,14 +344,6 @@ firstBetTest' = firstBetTest
   (OracleAnswerDatum 3)
   (valueFromLovelace 20_000_000)
 ```
-
-Use the following command to observe test's results (being granted you are inside a Nix
-shell):
-
-```bash
-$ cabal run atlas-unified-tests -- -p 'Emulator.Place bet.Placing first bet'
-```
-
 
 ### Multiple bets test
 
@@ -480,13 +466,6 @@ mkMultipleBetsTest betUntil betReveal betStep bets ws = do
               (show vAfter)
 ```
 
-Use the following command to observe the test's results (being granted you are inside a Nix
-shell):
-
-```bash
-$ cabal run atlas-unified-tests -- -p 'Emulator.Place bet.Multiple bets'
-```
-
 ### Writing negative tests
 
 But sometimes we want a test to fail! What happens if the newly placed bet is
@@ -539,7 +518,7 @@ placeBetTests setup = testGroup "Place bet"
 
 This section concludes our journey to testing dApps with Atlas.
 
-[^1]: If you were to have fine-grained control over balance change, use `withWalletBalancesCheck` instead.
+[^1]: If you were to have fine-grained control over balance change, use [`withWalletBalancesCheck`](https://haddock.atlas-app.io/GeniusYield-Test-Utils.html#v:withWalletBalancesCheck) instead.
 
 [^2]: To convey the message better, we have a defined [`(:=)`](https://haddock.atlas-app.io/GeniusYield-Test-Utils.html#v::-61-) pattern synonym:
 
