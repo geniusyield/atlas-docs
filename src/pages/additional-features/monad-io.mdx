@@ -1,0 +1,13 @@
+# Provide `MonadIO` instances of query/builder monadic interpreters
+
+Out of the box, we don't provide `MonadIO` instances for these interpreters as we don't want to allow arbitrary IO action within them. But it can be easily defined like so:
+
+```haskell
+import GeniusYield.TxBuilder.IO.Unsafe (unsafeIOToQueryMonad, unsafeIOToTxBuilderMonad)
+
+instance MonadIO GYTxQueryMonadIO where
+    liftIO = unsafeIOToQueryMonad
+
+instance MonadIO GYTxBuilderMonadIO where
+    liftIO = unsafeIOToTxBuilderMonad
+```
