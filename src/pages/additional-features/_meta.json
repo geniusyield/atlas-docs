@@ -1,4 +1,5 @@
 {
   "blueprint": "Blueprint",
-  "simple-scripts": "Simple Scripts"
+  "simple-scripts": "Simple Scripts",
+  "monad-io": "Provide MonadIO instances"
 }
