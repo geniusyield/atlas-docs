@@ -1,0 +1,8 @@
+# Certificates
+
+Atlas has rich support of all possible certificates. [`GeniusYield.Types.TxCert`](https://haddock.atlas-app.io/GeniusYield-Types-TxCert.html) module provide constructors to build them along with useful instructions describing conditions for certificate to be considered valid. Following tests illustrate how one can construct & work with these certificates:
+
+* Certificates related to registering, updating & unregistering a delegated representative (DRep): [`GeniusYield.Test.Privnet.DRep`](https://github.com/geniusyield/atlas/blob/main/tests-privnet/GeniusYield/Test/Privnet/DRep.hs).
+* Certificates pertaining to stake address registration, delegation & deregistration (this also illustrates usage of stake validator): [`GeniusYield.Test.Privnet.Stake`](https://github.com/geniusyield/atlas/blob/main/tests-privnet/GeniusYield/Test/Privnet/Stake.hs).
+* Those related to stake pool registration & retirement: [`GeniusYield.Test.Privnet.StakePool`](https://github.com/geniusyield/atlas/blob/main/tests-privnet/GeniusYield/Test/Privnet/StakePool.hs).
+* Committee related certificates: [`GeniusYield.Test.Privnet.Committee`](https://github.com/geniusyield/atlas/blob/main/tests-privnet/GeniusYield/Test/Privnet/Committee.hs).

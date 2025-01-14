@@ -1,15 +1,20 @@
+import { Callout } from 'nextra-theme-docs'
+
 # How to build?
 
 We currently support GHC version 9.6.5 and compilation is tested with cabal version 3.10.2.0.
 
-Besides basic Haskell tooling (GHC and cabal), since we depend upon libraries used in [`cardano-node`](https://github.com/IntersectMBO/cardano-node), one would need to have additional dependencies as described in [this](https://github.com/input-output-hk/cardano-node-wiki/blob/0e31e6805407ea7059bcf1afccdd84fb275c12e6/docs/getting-started/install.md) guide related to building node from source. When referring to that guide, for our purposes, section on _"Installing the Haskell environment"_ and sections following (& including) _"Downloading the source code for cardano-node"_ are irrelevant.
+Besides basic Haskell tooling (GHC and cabal), since we depend upon libraries used in [`cardano-node`](https://github.com/IntersectMBO/cardano-node), one would need to have additional dependencies as described in [this](https://github.com/input-output-hk/cardano-node-wiki/blob/602fe3a56a13a773cd6c0e00420ee3e5c56f2857/docs/getting-started/install.md) guide related to building node from source. When referring to that guide, for our purposes, section on _"Installing the Haskell environment"_ and sections following (& including) _"Downloading the source code for cardano-node"_ are irrelevant.
 
 Additionally one would need `libpq-dev` or `postgresql` installed in their environment otherwise an error suggesting missing `pg_config` can occur.
 
 We build Atlas in our Github CI using environment described [here](https://github.com/geniusyield/atlas/blob/main/.github/workflows/haskell.yml) which one can also refer if they encounter a build failure.
 
-To verify if environment is configured properly, one can clone Atlas repository from [here](https://github.com/geniusyield/atlas/tree/main) and run `cabal build all` to see if build is successful.
+To verify if environment is configured properly, one can clone Atlas repository from [here](https://github.com/geniusyield/atlas/tree/main) and run `cabal update && cabal build all` to see if build is successful.
 
+<Callout>
+  If you receive an error related to building `postgresql-libpq:+use-pkg-config`, try unsetting `use-pkg-config` flag in your `cabal.project.local` file.
+</Callout>
 
 ## Building with Nix
 

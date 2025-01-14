@@ -122,6 +122,8 @@ As mentioned before, we just mention at high level what we want in a transaction
 | Valid after      | `gytxInvalidBefore` | Just the corresponding node slot.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Valid before     | `gytxInvalidAfter`  | Same as above.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Metadata         | `gytxMetadata`      | Transaction metadata.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Voting procedures         | `gytxVotingProcedures`      | Transaction voting procedures.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Proposal procedures         | `gytxProposalProcedures`      | Transaction proposal procedures.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 When constructing the transaction, we just need to specify what we want in this skeleton.
 
@@ -235,7 +237,7 @@ input brp refScript inputRef dat red =
       { gyTxInTxOutRef = inputRef
       , gyTxInWitness =
           GYTxInWitnessScript
-            (GYInReference refScript $ betRefValidator' brp)
+            (GYBuildPlutusScriptReference refScript $ betRefValidator' brp)
             (datumFromPlutusData dat)
             (redeemerFromPlutusData red)
       }
@@ -245,7 +247,7 @@ input brp refScript inputRef dat red =
   In case we didn't want to use reference script, we would write `gyTxInWitness` as: 
   ```haskell
   gyTxInWitness  = GYTxInWitnessScript
-          (GYInScript (betRefValidator' brp))
+          (GYBuildPlutusScriptInlined (betRefValidator' brp))
           (datumFromPlutusData dat)
           (redeemerFromPlutusData red)
   ```
@@ -330,6 +332,14 @@ We weren't minting any tokens in our example here and thus didn't make use of `m
 ### Withdrawals, Stake Validator & Stake Certificates
 
 We haven't made use of withdrawals, stake certificates and stake validators in our example. A sample illustration is provided in [this](https://github.com/geniusyield/atlas/blob/main/tests-privnet/GeniusYield/Test/Privnet/Stake.hs) privnet test.
+
+### Additional certificates
+
+Atlas has rich support of all possible certificates, see our section on [Certificates](./../additional-features/certificates) to learn more about working with them.
+
+### Governance procedures
+
+See [Governance procedures](./../additional-features/governance) section to learn how to do governance procedures using Atlas.
 
 ## Monad hierarchy
 
