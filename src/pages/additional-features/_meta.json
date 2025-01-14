@@ -2,5 +2,6 @@
   "blueprint": "Blueprint",
   "simple-scripts": "Simple Scripts",
   "certificates": "Certificates",
+  "governance": "Governance Procedures",
   "monad-io": "Provide MonadIO instances"
 }
