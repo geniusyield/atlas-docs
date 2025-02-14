@@ -26,7 +26,8 @@ As noted earlier, building transaction bodies require gathering suitable informa
 Currently Atlas supports the following providers (& it would be highly appreciated if community enriches this by contributing to [Atlas](https://github.com/geniusyield/atlas/tree/main)):
 
 * [Maestro](https://www.gomaestro.org/).
-* Locally ran node along with [Kupo](https://cardanosolutions.github.io/kupo/). We have tested with version 8.1.2 of `cardano-node` and 2.7.2 of Kupo.
+* Locally ran node along with [Kupo](https://cardanosolutions.github.io/kupo/). We have tested with version 10.1.3 of `cardano-node` and 2.10.0 of Kupo.
+  * Note that node connection is supported both via network socket and Ogmios URL.
 * [Blockfrost](https://blockfrost.io/).
 
 <Callout type="warning">
@@ -63,7 +64,7 @@ To provide information about the provider, we will create a `config.json` file w
 
 where `coreProvider` field can have one of following possible values:
 
-<Tabs items={['Maestro', 'Local Node with Kupo', 'Blockfrost']}>
+<Tabs items={['Maestro', 'Local Node (socket connection) with Kupo', 'Local Node (Ogmios URL connection) with Kupo', 'Blockfrost']}>
   <Tab>
     ```json
     "coreProvider": { "maestroToken": "<Your-API-Key>", "turboSubmit": false },
@@ -72,6 +73,11 @@ where `coreProvider` field can have one of following possible values:
   <Tab>
     ```json
     "coreProvider": { "socketPath": "path-to-node-socket", "kupoUrl": "http://localhost:1442" },
+    ```
+  </Tab>
+  <Tab>
+    ```json
+    "coreProvider": { "ogmiosUrl": "http://localhost:1337", "kupoUrl": "http://localhost:1442" },
     ```
   </Tab>
   <Tab>
