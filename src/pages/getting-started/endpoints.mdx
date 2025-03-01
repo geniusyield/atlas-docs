@@ -72,12 +72,30 @@ where `coreProvider` field can have one of following possible values:
   </Tab>
   <Tab>
     ```json
-    "coreProvider": { "socketPath": "path-to-node-socket", "kupoUrl": "http://localhost:1442" },
+    "coreProvider": { 
+      "socketPath": "path-to-node-socket",
+      "kupoUrl": "http://localhost:1442",
+      "localTxSubmissionCache": {
+        "cacheInterval": 1
+      },
+      "mempoolCache": {
+        "cacheInterval": 1
+      }
+    },
     ```
   </Tab>
   <Tab>
     ```json
-    "coreProvider": { "ogmiosUrl": "http://localhost:1337", "kupoUrl": "http://localhost:1442" },
+    "coreProvider": {
+      "ogmiosUrl": "http://localhost:1337",
+      "kupoUrl": "http://localhost:1442"
+      "localTxSubmissionCache": {
+        "cacheInterval": 1
+      },
+      "mempoolCache": {
+        "cacheInterval": 1
+      }
+    },
     ```
   </Tab>
   <Tab>
@@ -91,7 +109,10 @@ Here is the explanation for each of the JSON keys above:
 
 * **`coreProvider`**: This field is the differentiating factor between different providers.
   * For Maestro, `maestroToken` holds the api key and `turboSubmit` field dictates whether the transactions are to be submitted via their [turbo submit](https://docs.gomaestro.org/Cardano/Transaction-Manager/tx-manager-turbo-submit) endpoint.
-  * For Local Node with Kupo provider, `socketPath` is the path towards node socket (usually named `node.socket`) file and `kupoUrl` is the url where endpoints are made available by Kupo, it is usually `http://localhost:1442`.
+  * For Local Node with Kupo provider, `socketPath` is the path towards node socket (usually named `node.socket`) file, `kupoUrl` is the url where endpoints are made available by Kupo, it is usually `http://localhost:1442`.
+    * `mempoolCache` denotes if one would like to use mempool to know for already spent inputs and to be made available outputs when utilising UTxO query functions such as `utxosAtAddresses`. `cacheInterval` here denotes how long (in seconds) will the mempool information would be cached as we would not want to query mempool frequently.
+    * Similarly `localTxSubmissionCache` denotes if one would like to consider locally submitted transactions to know for already spend inputs and to be made available outputs when utilising UTxO query functions. `cacheInterval` here denotes how long (in seconds) would one like to consider previously submitted transactions. We wouldn't want to carry huge amount of data in memory, so it's better to forget about old submitted transactions as their information would already be reflected in the tip.
+  * For Ogmios with Kupo provider, `ogmiosUrl` is the URL of Ogmios host and rest of the fields are same as in "Local node with Kupo provider".
   * For Blockfrost, `blockfrostKey` holds the required api key.
 * **`networkId`**: Specifies your network and must be one of `mainnet`, `preprod`, `preview`, `testnet` (for legacy testnet) & `privnet` (for local private network).
 * **`logging`**: It's a list of [scribes](https://hackage.haskell.org/package/katip-0.8.7.3/docs/Katip.html#t:Scribe) to register. Its parameters (like `severity`, `verbosity`) and its general usage can be understood by going over their official haddock documentation [here](https://hackage.haskell.org/package/katip-0.8.7.2/docs/Katip.html). Katip is also explained in [this](https://link.springer.com/book/10.1007/978-1-4842-3739-7) book on web development in Haskell. Please have a look at haddock for `FromJSON` and `ToJSON` instances of [`GYLogScriptType`](https://haddock.atlas-app.io/GeniusYield-Types-Logging.html#t:GYLogScribeType) to see sample usage.
