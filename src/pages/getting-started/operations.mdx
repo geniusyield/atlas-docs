@@ -124,6 +124,7 @@ As mentioned before, we just mention at high level what we want in a transaction
 | Metadata         | `gytxMetadata`      | Transaction metadata.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Voting procedures         | `gytxVotingProcedures`      | Transaction voting procedures.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Proposal procedures         | `gytxProposalProcedures`      | Transaction proposal procedures.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Donation                    | `gytxDonation`                | Treasury donation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 When constructing the transaction, we just need to specify what we want in this skeleton.
 
@@ -136,11 +137,12 @@ mustHaveOutput o = emptyGYTxSkeleton {gytxOuts = [o]}
 mustHaveInput :: GYTxIn v -> GYTxSkeleton v
 mustHaveInput i = emptyGYTxSkeleton {gytxIns = [i]}
 
-mustHaveRefInput :: VersionIsGreaterOrEqual v PlutusV2 => GYTxOutRef -> GYTxSkeleton v
+mustHaveRefInput :: GYTxOutRef -> GYTxSkeleton v
 mustHaveRefInput i = emptyGYTxSkeleton { gytxRefIns = GYTxSkeletonRefIns (Set.singleton i) }
 
-mustMint :: GYMintingPolicy u -> GYRedeemer -> GYTokenName -> Integer -> GYTxSkeleton v
-mustMint p r tn n = emptyGYTxSkeleton {gytxMint = Map.singleton (Some p) (Map.singleton tn n, r)}
+mustMint :: GYBuildScript v -> GYRedeemer -> GYTokenName -> Integer -> GYTxSkeleton v
+mustMint _ _ _ 0 = mempty
+mustMint p r tn n = emptyGYTxSkeleton {gytxMint = Map.singleton p (Map.singleton tn n, r)}
 
 mustBeSignedBy :: GYPubKeyHash -> GYTxSkeleton v
 mustBeSignedBy pkh = emptyGYTxSkeleton {gytxSigs = Set.singleton pkh}
@@ -159,6 +161,18 @@ mustHaveWithdrawal w = mempty {gytxWdrls = [w]}
 
 mustHaveCertificate :: GYTxCert v -> GYTxSkeleton v
 mustHaveCertificate c = mempty {gytxCerts = [c]}
+
+mustHaveVotingProcedures :: VersionIsGreaterOrEqual v 'PlutusV3 => GYTxVotingProcedures v -> GYTxSkeleton v
+mustHaveVotingProcedures vp = emptyGYTxSkeleton {gytxVotingProcedures = GYTxSkeletonVotingProcedures vp}
+
+mustHaveProposalProcedure :: VersionIsGreaterOrEqual v 'PlutusV3 => GYProposalProcedurePB -> GYTxBuildWitness v -> GYTxSkeleton v
+mustHaveProposalProcedure pp w = mustHaveProposalProcedures [(pp, w)]
+
+mustHaveProposalProcedures :: VersionIsGreaterOrEqual v 'PlutusV3 => [(GYProposalProcedurePB, GYTxBuildWitness v)] -> GYTxSkeleton v
+mustHaveProposalProcedures pps = emptyGYTxSkeleton {gytxProposalProcedures = GYTxSkeletonProposalProcedures pps}
+
+mustHaveDonation :: VersionIsGreaterOrEqual v 'PlutusV3 => Natural -> GYTxSkeleton v
+mustHaveDonation n = emptyGYTxSkeleton {gytxDonation = GYTxSkeletonDonation n}
 ```
 
 Thus we can specify that our transaction must have this output (using `mustHaveOutput`) and that output and must have this input (using `mustHaveInput`) and so on... and combine them all into a single skeleton using `mappend`.
@@ -340,6 +354,10 @@ Atlas has rich support of all possible certificates, see our section on [Certifi
 ### Governance procedures
 
 See [Governance procedures](./../additional-features/governance) section to learn how to do governance procedures using Atlas.
+
+### Treasury donation
+
+As previously shown, our `GYTxSkeleton` supports for specifying treasury donation, see See "Donation" test in [`GeniusYield.Test.Privnet.Examples.Misc`](https://github.com/geniusyield/atlas/blob/main/src/GeniusYield/Test/Privnet/Examples/Misc.hs) module for an example.
 
 ## Monad hierarchy
 

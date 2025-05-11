@@ -14,9 +14,11 @@ Let's now start by writing a smart contract that we will use to convey framework
 
   Here we'll be writing our smart contract in Plutus-tx (aka Plinth) but do note that we are not limited to it. If you are using [Aiken](https://aiken-lang.org/), check out our [Blueprint](./../additional-features/blueprint) section to see how easily Aiken validators can be plugged into Atlas, also supporting creation of high level Haskell types corresponding to blueprint schema.
   
+  Blueprint file for running bet-ref example is also provided [here](https://github.com/geniusyield/atlas/blob/main/plutus/src-plutustx/GeniusYield/OnChain/BetRef/Compiled.hs).
+
   And in general, one can read the compiled validator's CBOR using `scriptFromCBOR` function defined [here](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) ([Operations over Contract](./operations.mdx) chapter explains about types such as `GYScript`, `PlutusVersion` which are used in this function). Similarly, there is `readScript` defined in the [same](https://github.com/geniusyield/atlas/tree/main/src/GeniusYield/Types/Script.hs) file to read from the compiled [text envelope](https://cardano-api.cardano.intersectmbo.org/cardano-api/Cardano-Api-SerialiseTextEnvelope.html#t:TextEnvelope) file.
   
-  Note that if your validator is written in Plutarch, we recommend [Ply](https://github.com/geniusyield/ply) to read Plutarch compiled scripts. In particular, check out [this](https://github.com/geniusyield/dex-contracts-api/blob/main/geniusyield-dex-api/src/GeniusYield/Scripts/Common.hs) example where GeniusYield reads it's plutarch validators into Atlas.
+  Note that if your validator is written in Plutarch, we recommend [Ply](https://github.com/geniusyield/ply) to read Plutarch compiled scripts. In particular, check out [this](https://github.com/geniusyield/dex-contracts-api/blob/main/geniusyield-dex-api/src/GeniusYield/Scripts/Common.hs) example where GeniusYield reads it's plutarch validators into Atlas. Alternatively, Ply now also supports blueprints feature
 
 </Callout>
 

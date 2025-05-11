@@ -1,0 +1,21 @@
+import { Callout } from 'nextra-theme-docs'
+
+# Signing Keys
+
+Atlas supports generation and parsing of signing keys.
+
+<Callout>
+  Types and functions described below can be found in https://haddock.atlas-app.io/GeniusYield-Types-Key.html.
+</Callout>
+
+`GYSigningKey` types encapsulates (normal - i.e., non-extended) signing keys whereas `GYExtendedSigningKey` encapsulates extended signing keys.
+
+`generateSigningKey`, `writeSigningKey` and `readSigningKey` are used respectively, to generate, write & read a signing key. Likewise their are variants for extended signing key.
+
+Corresponding verification key can be obtained from `getVerificationKey` for normal signing keys and via `getExtendedVerificationKey` for extended signing keys.
+
+Likewise `verificationKeyHash` and `extendedVerificationKeyHash` gives us hash of the corresponding verification key.
+
+## Mnemonic based wallet
+
+Atlas supports loading keys for a mnemonic based wallet. Refer to it's haddock on how to work with it: https://haddock.atlas-app.io/GeniusYield-Types-Wallet.html.
